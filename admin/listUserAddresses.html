@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<!-- ===============================================-->
+	<!--    Document Title-->
+	<!-- ===============================================-->
+	<title>NICE Trader Dashboard</title>
+
+
+	<!-- ===============================================-->
+	<!--    Favicons-->
+	<!-- ===============================================-->
+	<link rel="apple-touch-icon" sizes="180x180" href="../images/favicons/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="../images/favicons/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="../images/favicons/favicon-16x16.png">
+	<link rel="shortcut icon" type="image/x-icon" href="../images/favicons/favicon.ico">
+	<meta name="msapplication-TileImage" content="../images/favicons/mstile-150x150.png">
+	<meta name="theme-color" content="#ffffff">
+	<script src="../assets/js/config.js"></script>
+	<script src="assets/vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
+
+
+	<!-- ===============================================-->
+	<!--    Stylesheets-->
+	<!-- ===============================================-->
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700%7cPoppins:300,400,500,600,700,800,900&amp;display=swap" rel="stylesheet">
+	<link href="../assets/vendors/overlayscrollbars/OverlayScrollbars.min.css" rel="stylesheet">
+	<link href="../assets/css/theme.css" rel="stylesheet" id="style-default">
+	<link href="../assets/vendors/plyr/plyr.css" rel="stylesheet">
+    <link href="../css/select2.min.css" rel="stylesheet" />
+
+	<script src="../assets/vendors/plyr/plyr.polyfilled.min.js"></script>
+	<script src="../js/js.cookie.min.js"></script>
+	<script src="../js/moment.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script src="../js/select2.full.js"></script>
+	<script src="../js/nice/helper.js"></script>
+	<script src="../js/nice/user.js"></script>
+	<script src="../js/nice/USD.js"></script>
+	<script src="../js/nice/currency.js"></script>
+	<script src="../js/nice/trade.js"></script>
+	<script src="../js/nice/notifications.js"></script>
+
+    
+	<script src="js/nice/admin.js"></script>
+	<script src="js/nice/adminAddresses.js"></script>
+<script>
+	
+
+	var editUserId=Cookies.get("editUserId");
+	function pageLoaded(){
+		document.getElementById("backLink").href=document.getElementById("backLink").href+"?editUserId="+editUserId;
+        admin.verifyAdminSession();
+		console.log("hello zoe");
+		console.log(editUserId)
+		getUserAddresses(editUserId);
+	}
+
+	function getUserAddresses(editUserId){
+		adminAddresses.getUserAddresses(admin.sessionId,editUserId, function(responseJSON){
+			addresses=JSON.parse(responseJSON);
+			console.log(addresses)
+			
+			var html="";
+			for (var i in addresses){
+				
+				html+="<tr onclick='editAddress("+i+");'>";
+				html+="<td >" + addresses[i].addressId+"</td>";
+				html+="<td>" + addresses[i].address1+"</td>";
+				html+="<td>" + addresses[i].address2+"</td>";
+				html+="<td>" + addresses[i].city+"</td>";
+				html+="<td>" + addresses[i].state+"</td>";
+				html+="<td>" + addresses[i].zip+"</td>";
+				html+="<td>" + addresses[i].country+"</td>";
+				html+="<td>" + addresses[i].dateAdded+"</td>";
+				html+="<td>" + addresses[i].lat+"</td>";
+				html+="<td>" + addresses[i].lng+"</td>";
+				
+				html+="</tr>";
+				
+			}
+			document.getElementById("addresses").innerHTML=html;
+		});
+	}
+
+	function editAddress(row){
+
+		document.getElementById("addressId").value=addresses[row].addressId;
+		document.getElementById("address1").value=addresses[row].address1;
+		document.getElementById("address2").value=addresses[row].address2;
+		document.getElementById("city").value=addresses[row].city;
+		document.getElementById("state").value=addresses[row].state;
+		document.getElementById("zip").value=addresses[row].zip;
+		document.getElementById("country").value=addresses[row].country;
+
+
+
+	}
+
+	function saveAddress(){
+
+		var addressId=document.getElementById("addressId").value;
+		var address1=document.getElementById("address1").value;
+		var address2=document.getElementById("address2").value;
+		var city=document.getElementById("city").value;
+		var state=document.getElementById("state").value;
+		var zip=document.getElementById("zip").value;
+		var country=document.getElementById("country").value;
+
+
+		
+		adminAddresses.saveAddress(user.sessionId,editUserId,addressId,address1,address2,city,state,zip,country,
+
+			function(responsejson){
+
+				console.log(responsejson);
+
+				getUserAddresses(editUserId);
+
+				document.getElementById("addressId").value="";
+				document.getElementById("address1").value="";
+				document.getElementById("address2").value="";
+				document.getElementById("city").value="";
+				document.getElementById("state").value="";
+				document.getElementById("zip").value="";
+				document.getElementById("country").value="";
+				document.getElementById("message").innerHTML="address has been saved";
+
+
+			},
+			function(){
+
+			}
+		);
+		
+	}
+	function deleteAddress(){
+		var addressId=document.getElementById("addressId").value;
+		adminAddresses.deleteAddress(user.sessionId,editUserId,addressId,
+			function(){
+				document.getElementById("message").innerHTML="address deleted";
+				
+				getUserAddresses(editUserId);
+				document.getElementById("addressId").value="";
+				document.getElementById("address1").value="";
+				document.getElementById("address2").value="";
+				document.getElementById("city").value="";
+				document.getElementById("state").value="";
+				document.getElementById("zip").value="";
+				document.getElementById("country").value="";
+				document.getElementById("message").innerHTML="address has been deleted";
+			}, 
+			function(){
+
+			}
+		);
+	}
+</script>
+</head>
+<body onload="pageLoaded();">
+	<main class="main" id="top">
+	
+	<div class="container" data-layout="container">
+		
+		
+	<div class="content">
+	<a href="editUser.html" id="backLink">Back to user</a>
+	<div class="table-responsive scrollbar">
+	<table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200">
+		<thead class="bg-light">
+
+		<tr>
+			<th nowrap>AddressId</th>
+			<th nowrap>Address 1</th>
+			<th nowrap>Address 2</th>
+			<th nowrap>City</th>
+			<th nowrap>State</th>
+			<th nowrap>Zip</th>
+			<th nowrap>Country</th>
+			<th nowrap>Date Added</th>
+			<th nowrap>lat</th>
+			<th nowrap>lng</th>
+		</tr>
+		
+		</thead>
+		<tbody id="addresses">
+
+		</tbody>
+	</table>
+</div>
+
+
+
+<br>
+	<form>
+		<div id="message" style="color:blue;"></div>
+		<table border=0 cellspacing=0>
+
+			<tr>
+				<th>AddressId</th>
+				<td><input class="form-control" type="text" id="addressId"></td>
+			</tr>
+
+			<tr>
+				<th>Address1</th>
+				<td><input class="form-control" type="text" id="address1"></td>
+			</tr>
+
+			<tr>
+				<th>Address2</th>
+				<td><input class="form-control" type="text" id="address2"></td>
+				
+			</tr>
+
+			<tr>
+				<th>City</th>
+				<td><input class="form-control" type="text" id="city"></td>
+			</tr>
+
+			<tr>
+				<th>State</th>
+				<td><input class="form-control" type="text" id="state"></td>
+			</tr>
+
+			<tr>
+				<th>Zip</th>
+				<td><input class="form-control" type="text" id="zip"></td>
+			</tr>
+
+			<tr>
+				<th>Country</th>
+				<td><input class="form-control" type="text" id="country"></td>
+			</tr>
+
+			<tr>
+				<th></th>
+				<td><input class="btn btn-primary" onclick="saveAddress()" type="button" value="save"></td>
+			</tr>
+
+			<tr>
+				<th></th>
+				<td>
+					<br><br><br>
+					<input class="btn btn-danger" onclick="deleteAddress()" type="button" value="delete">
+					
+				</td>
+			</tr>
+		
+	</table>
+	
+	</form>
+
+
+	</div>
+		
+		</div>
+	</main>
+<!-- ===============================================-->
+	<!--    JavaScripts-->
+	<!-- ===============================================-->
+	<script src="../assets/vendors/popper/popper.min.js"></script>
+	<script src="../assets/vendors/bootstrap/bootstrap.min.js"></script>
+	<script src="../assets/vendors/anchorjs/anchor.min.js"></script>
+	<script src="../assets/vendors/is/is.min.js"></script>
+
+	
+	<script src="../assets/vendors/fontawesome/all.min.js"></script>
+	<script src="../assets/vendors/lodash/lodash.min.js"></script>
+	<script src="../https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+	<script src="../assets/vendors/list.js/list.min.js"></script>
+	<script src="../assets/js/theme.js"></script>
+
+</body>
+</html>

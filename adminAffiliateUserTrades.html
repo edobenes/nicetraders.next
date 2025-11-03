@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+		<meta name="description" content="My Nice Traders" />
+		<meta name="keywords" content="Neighborhood International Currency Exchange, Nice Traders, trade currency, money, USD, Dollars, neighbors, traders" />
+		<meta name="author" content="Nice Traders" />
+
+		
+		<title>NICE Traders</title>
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicons/favicon-16x16.png">
+		<link rel="shortcut icon" type="image/x-icon" href="/img/favicons/favicon.ico">
+		<link rel="manifest" href="/img/favicons/manifest.json">
+		<meta name="msapplication-TileImage" content="/img/favicons/mstile-150x150.png">
+		<meta name="theme-color" content="#ffffff">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+		<link rel="stylesheet" href="/css/bulma.css">
+		<link rel="stylesheet" href="/css/bulma-custom.css">
+		<link rel="stylesheet" href="/css/bulma-steps.min.css">
+		
+		<script src="/js/bulma-steps.min.js"></script>
+		<script src="/js/bulma-simple-validator.js"></script>
+		
+		
+		<!-- <script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script> -->
+		<!-- <script src="/vendors/bootstraptheme/js/config.js"></script> -->
+		<script src="/vendors/moment/moment.js"></script>
+		<script src="/vendors/jscookie/js.cookie.min.js"></script>
+		<script>
+			var urlParams = new URLSearchParams(window.location.search);
+
+			affiliateId= urlParams.get('affiliateId');
+			if (affiliateId){
+				Cookies.set("affiliateId",affiliateId, { expires: 365 });
+				console.log("save "+affiliateId)
+            }
+			
+			function go(path){
+				location.href=path
+			}
+		</script>
+		</head>
+		
+		
+		
+
+		
+
+		
+		<meta http-equiv="content-security-policy" content="">
+	<link rel="stylesheet" href="/_app/immutable/assets/pages/loading.svelte-8d9bacd0.css">
+	<link rel="modulepreload" href="/_app/immutable/start-ea12a2af.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-ce66fda8.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-b471da84.js">
+	<link rel="modulepreload" href="/_app/immutable/layout.svelte-ee30f3e9.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/adminAffiliateUserTrades.svelte-c4c437c3.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/navbarAdmin-dc1ff985.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/loading.svelte-57c98827.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/session.svelte-be531f44.js">
+	</head>
+	<body>
+		<div id="svelte">
+
+
+
+
+<div class="isLoading svelte-1q6f4vh" style="">Loading...
+		
+	
+		<span style="position: absolute; bottom: 0; right: 0; width: 50px; height: 50px; "></span></div>
+
+<main class="main" id="top"><nav class="navbar is-transparent" aria-label="dropdown navigation"><div class="navbar-brand"><a class="navbar-brand mr-auto" href="/admin" aria-label="Click to go back to Homepage"><span width="240" height="50" class="logo"><img width="240" alt="" src="img/NICE-TRADERS-LOGO.png"></span></a></div>
+
+	<div class="navbar-menu"><div class="navbar-start">
+			<div class="navbar-item has-dropdown is-right is-hoverable"><a class="navbar-link" href="">Menu</a>
+				<div class="navbar-dropdown is-boxed"><p class="pl-2 has-text-weight-bold">Users</p>
+					<a class="navbar-item" href="/adminUsers">Manage Users</a>
+					
+					<hr class="navbar-divider">
+					<p class="pl-2 has-text-weight-bold">Affiliates</p>
+                    <a class="navbar-item" href="/adminAffiliates">Manages Affiliates</a>
+					<hr class="navbar-divider">
+					<p class="pl-2 has-text-weight-bold">Currencies</p>
+                    <a class="navbar-item" href="/adminCurrencies">Currency Report</a></div></div></div>
+		<div class="navbar-end"><div class="navbar-item"></div></div></div></nav>
+	
+	<div class="container" data-layout="container"><a href="/admin">Admin</a>
+		/ <a href="/adminAffiliates">Manage Affiliates</a>
+		/ <a href="/adminAffiliateUsers?affiliateId=undefined">undefined undefined</a> / undefined undefined
+		<hr>
+
+		<div class="table-responsive scrollbar"><table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200"><thead class="bg-light"><tr class="text-900"><th></th>
+						<th>Want</th>
+						<th>Have</th>
+						<th>amountHave</th>
+						<th>Location</th></tr></thead>
+				</table></div></div></main>
+
+
+		<script type="module" data-sveltekit-hydrate="1fxiv3c">
+		import { start } from "/_app/immutable/start-ea12a2af.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="1fxiv3c"]').parentNode,
+			paths: {"base":"","assets":""},
+			session: {},
+			route: true,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [0, 4],
+				params: {},
+				routeId: "adminAffiliateUserTrades"
+			}
+		});
+	</script></div>
+
+		<!-- <script src="/vendors/bootstrap/bootstrap.min.js"></script>
+		<script src="/vendors/fontawesome/all.min.js"></script> -->
+
+		
+	</body>
+</html>

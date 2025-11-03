@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--myAccount.html-->
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>NICE Trades</title>
+
+
+	<link href="../css/select2.min.css" rel="stylesheet" />
+
+	<script src="../assets/vendors/plyr/plyr.polyfilled.min.js"></script>
+	<script src="../js/js.cookie.min.js"></script>
+	<script src="../js/moment.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script src="../js/select2.full.js"></script>
+	<script src="../js/nice/helper.js"></script>
+	<script src="../js/nice/user.js"></script>
+	<script src="../js/nice/USD.js"></script>
+	<script src="../js/nice/currency.js"></script>
+	<script src="../js/nice/trade.js"></script>
+	<script src="../js/nice/notifications.js"></script>
+
+    
+	<script src="js/nice/admin.js"></script>
+	<script src="js/nice/trades.js"></script>
+
+    <script>
+        adminDebug=true;
+        
+        var tradeSearches, tradeMatches;
+        var tradeSearchesById={};
+        var tradeMatchesByBuyer={};
+        var tradeMatchesBySeller={};
+
+
+        function pageLoaded(){
+           admin.verifyAdminSession();
+
+           getTradeSearches();
+           getTradeMatches();
+        }
+
+        
+
+        function getTradeSearches(){
+            adminTrades.getTradeSearches(admin.sessionId,function(responseJSON){
+                tradeSearches=JSON.parse(responseJSON);
+                for (var i in tradeSearches){
+                    tradeSearchesById[tradeSearches[i].tradeSearchId]=tradeSearches[i];
+                }
+                
+                allDownloaded();
+            });
+        }
+
+        function getTradeMatches(){
+            adminTrades.getTradeMatches(admin.sessionId,function(responseJSON){
+                tradeMatches=JSON.parse(responseJSON);
+                for (var i in tradeMatches){
+                    if (!tradeMatchesByBuyer[tradeMatches[i].buyTradeSearchId]){
+                        tradeMatchesByBuyer[tradeMatches[i].buyTradeSearchId]=[];
+                    } 
+                    tradeMatchesByBuyer[tradeMatches[i].buyTradeSearchId].push(tradeMatches[i]);
+
+                    if (!tradeMatchesBySeller[tradeMatches[i].sellTradeSearchId]){
+                        tradeMatchesBySeller[tradeMatches[i].sellTradeSearchId]=[];
+                    } 
+                    tradeMatchesBySeller[tradeMatches[i].sellTradeSearchId].push(tradeMatches[i]);
+                }
+                allDownloaded();
+            });
+        }
+
+        function allDownloaded(){
+            if (tradeSearches && tradeMatches){
+                //tradeSearches=joinTradeMatches(tradeSearches );
+                //var trades=buySellTradeSearches(tradeSearches);
+                drawSellSearches(tradeSearches);
+
+                //drawBuySearches(trades.buySearches);
+                
+            }
+            
+        }
+
+        
+        //function buySellTradeSearches(tradeSearches){
+        //    var results={};
+        //    results.sellSearches=[];
+        //    results.buySearches=[];
+        //    for (var i in tradeSearches){
+        //        if (tradeSearches[i].amountHave==0){
+        //            results.buySearches.push(tradeSearches[i]);
+        //        } else{
+        //            results.sellSearches.push(tradeSearches[i]);
+        //        }
+        //    }
+        //    return results;
+        //}
+
+        //function joinTradeMatches(tradeSearches){
+            
+        //    for (var i in tradeSearches){
+        //        tradeSearches[i].matches=[];
+
+        //        for (var j in tradeMatches){
+        //            if (tradeMatches[j].buyTradeSearchId==tradeSearches[i].tradeSearchId){
+        //                tradeSearches[i].matches[tradeSearches[i].matches.length]=tradeMatches[j];
+        //                //console.log("that's a 3 pointer");
+        //            } else 
+        //            if (tradeMatches[j].sellTradeSearchId==tradeSearches[i].tradeSearchId){
+        //                tradeSearches[i].matches[tradeSearches[i].matches.length]=tradeMatches[j];
+        //                //console.log("that's a 2 pointer");
+        //            }    
+        //        }
+                
+        //    }
+        //    return tradeSearches;
+        //}
+
+        function drawSellSearches(){
+            var html=``;
+            for (var tradeSearchId in tradeSearchesById){
+                html+=`<tr>`;
+                //html+=`<td><a href='editTrade.html?tradeSearchId=`+tradeSearchesById[tradeSearchId].tradeSearchId+`'>Edit</a></td>`;
+                html+=`<td>` + tradeSearchesById[tradeSearchId].tradeSearchId+`</td>`;
+                html+=`<td>` + tradeSearchesById[tradeSearchId].want+`</td>`;
+                html+=`<td>` + tradeSearchesById[tradeSearchId].have+`</td>`;
+                html+=`<td>` + tradeSearchesById[tradeSearchId].amountHave+`</td>`;
+                html+=`<td><a href='editUser.html?userId=` +tradeSearchesById[tradeSearchId].userId+`'>`+ tradeSearchesById[tradeSearchId].firstName+` ` +tradeSearchesById[tradeSearchId].lastName+`</a></td>`;
+                if (tradeSearchesById[tradeSearchId].amountHave>0){
+                    html+=`<td>Sell</td>`;
+                    html+=`<td onclick="showSellMatches('`+tradeSearchId+`')">`+tradeMatchesBySeller[tradeSearchId].length+`</td>`;
+                    
+                } else{
+                    html+=`<td>Buy</td>`;
+                    //html+=`<td onclick="showBuyMatches('`+tradeSearchId+`')">`+tradeMatchesByBuyer[tradeSearchId].length+`</td>`;
+
+                }
+                html+=`<td>` + tradeSearchesById[tradeSearchId].dateAdded+`</td>`;
+               
+                html+=`</tr>`;
+                html+=`<tr  style="display:hidden"><td colspan=5>`;
+                var matches=tradeMatchesBySeller[tradeSearchId];
+                for (var id in matches){
+                    html+=`<td align=right>BUYER:</td>`;
+                    html+=`<td>` + matches[id].);
+                }
+                html+=`</td></tr>`;
+            }
+            document.getElementById("tradeSearches").innerHTML=html;
+        }
+        
+       
+        function showSellMatches(tradeSearchId){
+            var matches=tradeMatchesBySeller[tradeSearchId];
+            
+        }
+        
+        function showBuyMatches(row){
+            console.log(tradeMatchesByBuyer[tradeSearchId]);
+        }
+        
+    </script>
+  </head>
+  <body onload="pageLoaded();">
+      <img src="images/NICE-TRADERS-LOGO.png" width="300">
+
+
+<span id="loggedin">
+    <a href="logOut.html">Logout</a>
+</span>
+    <h1>NICE traders Admin</h1>
+
+    <a href="index.html">Back</a><br><br>
+
+    Trade Searches:
+    <table border="1">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Want</th>
+                <th>Have</th>
+                <th>amountHave</th>
+                <th>Who</th>
+                <th>Type</th>
+                <th>Matches?</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="tradeSearches">
+
+        </tbody>
+    </table>
+    
+
+
+  </body>
+</html>

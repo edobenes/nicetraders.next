@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+		<meta name="description" content="My Nice Traders" />
+		<meta name="keywords" content="Neighborhood International Currency Exchange, Nice Traders, trade currency, money, USD, Dollars, neighbors, traders" />
+		<meta name="author" content="Nice Traders" />
+
+		
+		<title>NICE Traders</title>
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicons/favicon-16x16.png">
+		<link rel="shortcut icon" type="image/x-icon" href="/img/favicons/favicon.ico">
+		<link rel="manifest" href="/img/favicons/manifest.json">
+		<meta name="msapplication-TileImage" content="/img/favicons/mstile-150x150.png">
+		<meta name="theme-color" content="#ffffff">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+		<link rel="stylesheet" href="/css/bulma.css">
+		<link rel="stylesheet" href="/css/bulma-custom.css">
+		<link rel="stylesheet" href="/css/bulma-steps.min.css">
+		
+		<script src="/js/bulma-steps.min.js"></script>
+		<script src="/js/bulma-simple-validator.js"></script>
+		
+		
+		<!-- <script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script> -->
+		<!-- <script src="/vendors/bootstraptheme/js/config.js"></script> -->
+		<script src="/vendors/moment/moment.js"></script>
+		<script src="/vendors/jscookie/js.cookie.min.js"></script>
+		<script>
+			var urlParams = new URLSearchParams(window.location.search);
+
+			affiliateId= urlParams.get('affiliateId');
+			if (affiliateId){
+				Cookies.set("affiliateId",affiliateId, { expires: 365 });
+				console.log("save "+affiliateId)
+            }
+			
+			function go(path){
+				location.href=path
+			}
+		</script>
+		</head>
+		
+		
+		
+
+		
+
+		
+		<meta http-equiv="content-security-policy" content="">
+	<link rel="stylesheet" href="/_app/immutable/assets/pages/loading.svelte-8d9bacd0.css">
+	<link rel="modulepreload" href="/_app/immutable/start-ea12a2af.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-ce66fda8.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-b471da84.js">
+	<link rel="modulepreload" href="/_app/immutable/layout.svelte-ee30f3e9.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/trade1.svelte-483acd75.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/navbarLoggedIn-0f69a9f5.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/loading.svelte-57c98827.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/session.svelte-be531f44.js">
+	</head>
+	<body>
+		<div id="svelte">
+
+
+
+
+<div class="isLoading svelte-1q6f4vh" style="">Loading...
+		
+	
+		<span style="position: absolute; bottom: 0; right: 0; width: 50px; height: 50px; "></span></div>
+
+<nav class="navbar is-transparent" aria-label="dropdown navigation"><div class="navbar-brand"><a class="navbar-brand mr-auto" href="/dashboard" aria-label="Click to go back to Homepage"><span width="240" class="logo"><img width="240" alt="" src="img/NICE-TRADERS-LOGO.png"></span></a></div>
+
+	<div class="navbar-menu"><div class="navbar-start">
+			<div class="navbar-item has-dropdown is-right is-hoverable"><a class="navbar-link" href="#">Menu</a>
+				<div class="navbar-dropdown is-boxed"><p class="pl-2 has-text-weight-bold">Trade</p>
+                    <a class="navbar-item" href="/dashboard">My Dashboard</a>
+					
+					<a class="navbar-item" href="/trade1?tradeSearchId=&type=sell">I have extra foreign currency</a>
+					<a class="navbar-item" href="/trade1?tradeSearchId=&type=buy">I am need foreign currency</a>
+                    
+					<hr class="navbar-divider">
+                    
+                    <p class="pl-2 has-text-weight-bold">Account</p>
+					<a class="navbar-item" href="/profile">My Account</a>
+					<a class="navbar-item" href="/changePassword">Change Password</a>
+					<a class="navbar-item" href="/loggedOut">Logout</a>
+					
+					<hr class="navbar-divider">
+					<p class="pl-2 has-text-weight-bold">Affiliate</p>
+                    <a class="navbar-item" href="/affiliateProgram">Earn Money with Nice Traders</a></div></div></div>
+		<div class="navbar-end"><div class="navbar-item"><div class="buttons"><a href="/trade1?type=buy&tradeSearchId=" class="button is-danger"><strong>Buy</strong></a>
+					<a href="/trade1?type=sell&tradeSearchId=" class="button is-info">Sell</a></div></div></div></div></nav>
+
+
+
+<div class="container">
+	<div class="card"><div class="card-content has-background-light"><div class="steps"><div class="step-item is-active "><div class="step-marker"><span class="icon"><i class="fa fa-question"></i></span></div>
+					</div>
+
+				<div class="step-item "><div class="step-marker"><span class="icon"><i class="fa fa-dollar-sign"></i></span></div>
+					</div>
+
+				<div class="step-item"><div class="step-marker"><span class="icon"><i class="fa fa-search"></i></span></div>
+					</div>
+				<div class="step-item"><div class="step-marker"><span class="icon"><i class="fa fa-handshake"></i></span></div>
+					</div></div></div>
+		<div class="card-content"><div class="content"><h4 class="is-size-4">How Selling Foreign currency works</h4>
+					<p class="is-size-6">If you have foreign currency from a previous trip, use NICE traders to 
+						find a neighbor who would like to buy the currency from you. You will 
+						get the full, published exchange rate and  
+						you won&#39;t have to pay any additional fees to a currency trading company.
+
+
+					</p>
+					<p class="is-size-6">Our fee is reasonable: 
+					</p>
+					<ul class="is-size-6 list"><li class="list-item">It costs nothing to set up your trade</li>
+						<li class="list-item">A flat $1 USD when we match you with a neighbor.</li>
+						<li class="list-item">We only charge you when you and your
+							neighbor agree to the terms.</li></ul>
+					<h4 class="is-size-5">Get started now!</h4></div></div>
+		
+		
+		<div class="card-content has-background-light"><div class="columns is-flex"><div class="column is-4" style="height: 50px;"></div>
+				<div class="column" style="padding-right: 1rem;"><button class="button is-info is-pulled-right" type="button">Next<span class="fas fa-chevron-right ms-2" data-fa-transform="shrink-3"></span></button></div></div></div></div></div>
+
+
+		<script type="module" data-sveltekit-hydrate="ijfvyn">
+		import { start } from "/_app/immutable/start-ea12a2af.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="ijfvyn"]').parentNode,
+			paths: {"base":"","assets":""},
+			session: {},
+			route: true,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [0, 27],
+				params: {},
+				routeId: "trade1"
+			}
+		});
+	</script></div>
+
+		<!-- <script src="/vendors/bootstrap/bootstrap.min.js"></script>
+		<script src="/vendors/fontawesome/all.min.js"></script> -->
+
+		
+	</body>
+</html>

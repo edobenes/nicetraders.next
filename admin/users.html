@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--myAccount.html-->
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>NICE Users</title>
+
+
+	<link href="../css/select2.min.css" rel="stylesheet" />
+
+	<script src="../assets/vendors/plyr/plyr.polyfilled.min.js"></script>
+	<script src="../js/js.cookie.min.js"></script>
+	<script src="../js/moment.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script src="../js/select2.full.js"></script>
+	<script src="../js/nice/helper.js"></script>
+	<script src="../js/nice/user.js"></script>
+	<script src="../js/nice/USD.js"></script>
+	<script src="../js/nice/currency.js"></script>
+	<script src="../js/nice/trade.js"></script>
+	<script src="../js/nice/notifications.js"></script>
+
+    
+	<script src="js/nice/admin.js"></script>
+
+    <script>
+        adminDebug=true;
+        function pageLoaded(){
+           admin.verifyAdminSession();
+           getUsers();
+        }
+
+        function verifyAdmin(){
+            if(!sessionId.length)
+            {
+                location.href="login.html";
+            }
+            user.verifyAdminBySessionId(sessionId,function(responseJSON){
+                response=JSON.parse(responseJSON);
+                
+                if (response.length==0){
+                    location.href="login.html";
+                }
+            });
+        }
+
+        function getUsers(){
+            admin.getUsers(admin.sessionId,function(responseJSON){
+                response=JSON.parse(responseJSON);
+                
+                var html="";
+                for (var i in response){
+                    html+="<tr>";
+                    html+="<td><a href='editUser.html?editUserId="+response[i].userId+"'>" + response[i].firstName+" " + response[i].lastName+ "</a></td>";
+                    html+="<td>" + response[i].email+"</td>";
+                    html+="<td>" + response[i].phone+"</td>";
+                    html+="</tr>";
+                }
+                document.getElementById("users").innerHTML=html;
+            });
+        }
+        
+    </script>
+  </head>
+  <body onload="pageLoaded();">
+      <img src="images/NICE-TRADERS-LOGO.png" width="300">
+
+
+<span id="loggedin">
+    <a href="logOut.html">Logout</a>
+</span>
+    <h1>NICE traders Admin</h1>
+
+    <a href="index.html">Back</a><br><br>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>phone</th>
+            </tr>
+        </thead>
+        <tbody id="users">
+
+        </tbody>
+    </table>
+    
+  </body>
+</html>

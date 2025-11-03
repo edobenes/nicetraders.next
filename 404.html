@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+		<meta name="description" content="My Nice Traders" />
+		<meta name="keywords" content="Neighborhood International Currency Exchange, Nice Traders, trade currency, money, USD, Dollars, neighbors, traders" />
+		<meta name="author" content="Nice Traders" />
+
+		
+		<title>NICE Traders</title>
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicons/favicon-16x16.png">
+		<link rel="shortcut icon" type="image/x-icon" href="/img/favicons/favicon.ico">
+		<link rel="manifest" href="/img/favicons/manifest.json">
+		<meta name="msapplication-TileImage" content="/img/favicons/mstile-150x150.png">
+		<meta name="theme-color" content="#ffffff">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+		<link rel="stylesheet" href="/css/bulma.css">
+		<link rel="stylesheet" href="/css/bulma-custom.css">
+		<link rel="stylesheet" href="/css/bulma-steps.min.css">
+		
+		<script src="/js/bulma-steps.min.js"></script>
+		<script src="/js/bulma-simple-validator.js"></script>
+		
+		
+		<!-- <script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script> -->
+		<!-- <script src="/vendors/bootstraptheme/js/config.js"></script> -->
+		<script src="/vendors/moment/moment.js"></script>
+		<script src="/vendors/jscookie/js.cookie.min.js"></script>
+		<script>
+			var urlParams = new URLSearchParams(window.location.search);
+
+			affiliateId= urlParams.get('affiliateId');
+			if (affiliateId){
+				Cookies.set("affiliateId",affiliateId, { expires: 365 });
+				console.log("save "+affiliateId)
+            }
+			
+			function go(path){
+				location.href=path
+			}
+		</script>
+		</head>
+		
+		
+		
+
+		
+
+		
+		<meta http-equiv="content-security-policy" content="">
+	<link rel="modulepreload" href="/_app/immutable/start-ea12a2af.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-ce66fda8.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-b471da84.js">
+	</head>
+	<body>
+		<div id="svelte">
+		<script type="module" data-sveltekit-hydrate="45h">
+		import { start } from "/_app/immutable/start-ea12a2af.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="45h"]').parentNode,
+			paths: {"base":"","assets":""},
+			session: {},
+			route: true,
+			spa: true,
+			trailing_slash: "never",
+			hydrate: null
+		});
+	</script></div>
+
+		<!-- <script src="/vendors/bootstrap/bootstrap.min.js"></script>
+		<script src="/vendors/fontawesome/all.min.js"></script> -->
+
+		
+	</body>
+</html>

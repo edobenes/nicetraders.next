@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+		<meta name="description" content="My Nice Traders" />
+		<meta name="keywords" content="Neighborhood International Currency Exchange, Nice Traders, trade currency, money, USD, Dollars, neighbors, traders" />
+		<meta name="author" content="Nice Traders" />
+
+		
+		<title>NICE Traders</title>
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicons/favicon-16x16.png">
+		<link rel="shortcut icon" type="image/x-icon" href="/img/favicons/favicon.ico">
+		<link rel="manifest" href="/img/favicons/manifest.json">
+		<meta name="msapplication-TileImage" content="/img/favicons/mstile-150x150.png">
+		<meta name="theme-color" content="#ffffff">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+		<link rel="stylesheet" href="/css/bulma.css">
+		<link rel="stylesheet" href="/css/bulma-custom.css">
+		<link rel="stylesheet" href="/css/bulma-steps.min.css">
+		
+		<script src="/js/bulma-steps.min.js"></script>
+		<script src="/js/bulma-simple-validator.js"></script>
+		
+		
+		<!-- <script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script> -->
+		<!-- <script src="/vendors/bootstraptheme/js/config.js"></script> -->
+		<script src="/vendors/moment/moment.js"></script>
+		<script src="/vendors/jscookie/js.cookie.min.js"></script>
+		<script>
+			var urlParams = new URLSearchParams(window.location.search);
+
+			affiliateId= urlParams.get('affiliateId');
+			if (affiliateId){
+				Cookies.set("affiliateId",affiliateId, { expires: 365 });
+				console.log("save "+affiliateId)
+            }
+			
+			function go(path){
+				location.href=path
+			}
+		</script>
+		</head>
+		
+		
+		
+
+		
+
+		
+		<meta http-equiv="content-security-policy" content="">
+	<link rel="stylesheet" href="/_app/immutable/assets/pages/loading.svelte-8d9bacd0.css">
+	<link rel="modulepreload" href="/_app/immutable/start-ea12a2af.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-ce66fda8.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-b471da84.js">
+	<link rel="modulepreload" href="/_app/immutable/layout.svelte-ee30f3e9.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/register.svelte-01ea6f16.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/navbarLoggedOut-cd4a4862.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/loading.svelte-57c98827.js">
+	</head>
+	<body>
+		<div id="svelte">
+
+
+<div class="isLoading svelte-1q6f4vh" style="">Loading...
+		
+	
+		<span style="position: absolute; bottom: 0; right: 0; width: 50px; height: 50px; "></span></div>
+
+
+<nav class="navbar is-transparent" aria-label="dropdown navigation"><div class="navbar-brand"><a class="navbar-brand mr-auto" href="/" aria-label="Click to go back to Homepage"><span width="240" class="logo"><img width="240" src="img/NICE-TRADERS-LOGO.png"></span></a></div>
+
+	<div class="navbar-menu"><div class="navbar-start">
+			<div class="navbar-item has-dropdown is-right is-hoverable"><a class="navbar-link" href="#">Menu</a>
+				<div class="navbar-dropdown is-boxed"><p class="pl-2 has-text-weight-bold">Account</p>
+					<a class="navbar-item" href="/login">Login</a>
+					<a class="navbar-item" href="/register">Sign up</a>
+					<a class="navbar-item" href="/forgotPassword">Recover Password</a>
+
+					<hr class="navbar-divider">
+					<p class="pl-2 has-text-weight-bold">Trade</p>
+
+					<a class="navbar-item" href="/trade1?tradeSearchId=">I have extra foreign currency</a>
+					<a class="navbar-item" href="/trade1?tradeSearchId=">I need foreign currency</a></div></div></div>
+		<div class="navbar-end"><div class="navbar-item"><div class="buttons"><a href="/register" class="button is-danger"><strong>Sign up</strong></a>
+					<a href="/login" class="button is-info">Log in</a></div></div></div></div></nav>
+
+
+<div class="container"><div class="card"><div class="card-content"><div class="content"><h1 class="subtitle">Register</h1>
+                <p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travelers</p>
+                                            
+                <form class="row g-3" id="registerForm" novalidate action="#"><div class="field"><label class="label" for="register-firstName">First Name</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-firstName" placeholder="First Name" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your first name</p></div>
+
+
+                <div class="field"><label class="label" for="register-lastName">Last Name</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-lastName" placeholder="Last Name" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your last name</p></div>
+
+                <div class="field"><label class="label" for="register-email">Email</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-email" placeholder="Email" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your email</p></div>
+
+
+                <div class="field"><label class="label" for="register-phone">Phone</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-phone" placeholder="Phone" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your phone</p></div>
+                
+                <div class="columns"><div class="column"><div class="field"><label class="label" for="register-password1">Password</label>
+                            <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-password1" placeholder="Password" value="">
+                                <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                                <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                            <p class="help is-hidden ">You must add your Password</p></div></div>
+                    <div class="column"><div class="field"><label class="label" for="register-password2">Confirm Password</label>
+                            <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-password2" placeholder="Confirm Password" value="">
+                                <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                                <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                            <p class="help is-hidden ">You must confirm your Password</p></div></div></div>
+                
+                <div class="field"><label class="label" for="register-address">Address</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-address" placeholder="Address 1" value="">
+                        <input class="input " type="text" id="register-address2" placeholder="Address 2" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your Address</p></div>
+
+                
+                <div class="field"><label class="label" for="register-city">City</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-city" placeholder="City" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your City</p></div>
+
+            
+                
+                <div class="field"><label class="label" for="register-state">State</label>
+                    <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-state" placeholder="State" value="">
+                        <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                    <p class="help is-hidden ">You must add your State</p></div>
+
+            
+                
+            <div class="field"><label class="label" for="register-zip">Zip</label>
+                <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-zip" placeholder="Zip Code" value="">
+                    <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                    <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                <p class="help is-hidden ">You must add your Zip</p></div>
+
+
+                
+            <div class="field"><label class="label" for="register-country">Country</label>
+                <div class="control has-icons-left has-icons-right"><input required class="input " type="text" id="register-country" placeholder="Country" value="">
+                    <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
+                    <span class="icon is-small is-right"><i class="fas fa-check"></i></span></div>
+                <p class="help is-hidden ">You must add your Country</p></div>
+
+
+            <div class="field"><div class="control has-icons-left has-icons-right"><input required class="form-check-input" type="checkbox" id="register-checkbox" value="0">
+                    <label class="form-label" for="register-checkbox">I accept the <a tabindex="-1" target="_blank" href="/terms">Terms and Conditions</a></label></div>
+                <p class="help is-hidden ">You must accept the terms</p></div>
+            
+            <div class="buttons"><button class="button is-info">Register</button></div></form></div></div></div></div>
+
+
+
+
+
+
+		<script type="module" data-sveltekit-hydrate="16xmckt">
+		import { start } from "/_app/immutable/start-ea12a2af.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="16xmckt"]').parentNode,
+			paths: {"base":"","assets":""},
+			session: {},
+			route: true,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [0, 23],
+				params: {},
+				routeId: "register"
+			}
+		});
+	</script></div>
+
+		<!-- <script src="/vendors/bootstrap/bootstrap.min.js"></script>
+		<script src="/vendors/fontawesome/all.min.js"></script> -->
+
+		
+	</body>
+</html>

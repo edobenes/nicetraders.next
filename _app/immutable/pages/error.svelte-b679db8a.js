@@ -1,0 +1,7 @@
+import{S as A,i as C,s as H,e as s,t as p,k as U,c as l,a as d,h as _,d as o,m as Y,b as m,g as J,J as e,K,L,E as D}from"../chunks/index-95e246fc.js";function P(q){let t,c,a,h,b,E,r,g,x,y,k,w,n,O,S,I;return{c(){t=s("div"),c=s("div"),a=s("div"),h=s("h5"),b=p("Uh Oh!"),E=U(),r=s("p"),g=p(`Sorry, we ran into an error. \r
+                    `),x=s("br"),y=U(),k=s("br"),w=p(`\r
+                    You will be redirected in a moment.\r
+                    Or `),n=s("a"),O=p("click here"),this.h()},l(f){t=l(f,"DIV",{id:!0});var u=d(t);c=l(u,"DIV",{class:!0});var V=d(c);a=l(V,"DIV",{class:!0});var v=d(a);h=l(v,"H5",{});var B=d(h);b=_(B,"Uh Oh!"),B.forEach(o),E=Y(v),r=l(v,"P",{class:!0});var i=d(r);g=_(i,`Sorry, we ran into an error. \r
+                    `),x=l(i,"BR",{}),y=Y(i),k=l(i,"BR",{}),w=_(i,`\r
+                    You will be redirected in a moment.\r
+                    Or `),n=l(i,"A",{href:!0});var R=d(n);O=_(R,"click here"),R.forEach(o),i.forEach(o),v.forEach(o),V.forEach(o),u.forEach(o),this.h()},h(){m(n,"href","/login"),m(r,"class","fs--1 mb-0"),m(a,"class","card-body"),m(c,"class","card mb-3"),m(t,"id","error")},m(f,u){J(f,t,u),e(t,c),e(c,a),e(a,h),e(h,b),e(a,E),e(a,r),e(r,g),e(r,x),e(r,y),e(r,k),e(r,w),e(r,n),e(n,O),S||(I=K(n,"click",L(go.bind(this,"/login"))),S=!0)},p:D,i:D,o:D,d(f){f&&o(t),S=!1,I()}}}class z extends A{constructor(t){super(),C(this,t,null,P,H,{})}}export{z as default};

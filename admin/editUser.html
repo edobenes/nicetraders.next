@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<!-- ===============================================-->
+	<!--    Document Title-->
+	<!-- ===============================================-->
+	<title>NICE Trader Dashboard</title>
+
+
+	<!-- ===============================================-->
+	<!--    Favicons-->
+	<!-- ===============================================-->
+	<link rel="apple-touch-icon" sizes="180x180" href="../images/favicons/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="../images/favicons/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="../images/favicons/favicon-16x16.png">
+	<link rel="shortcut icon" type="image/x-icon" href="../images/favicons/favicon.ico">
+	<link rel="manifest" href="../images/favicons/manifest.json">
+	<meta name="msapplication-TileImage" content="../images/favicons/mstile-150x150.png">
+	<meta name="theme-color" content="#ffffff">
+	<script src="../assets/js/config.js"></script>
+	<script src="../assets/vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
+
+
+	<!-- ===============================================-->
+	<!--    Stylesheets-->
+	<!-- ===============================================-->
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700%7cPoppins:300,400,500,600,700,800,900&amp;display=swap" rel="stylesheet">
+	<link href="../assets/vendors/overlayscrollbars/OverlayScrollbars.min.css" rel="stylesheet">
+	<link href="../assets/css/theme.css" rel="stylesheet" id="style-default">
+
+
+	
+	<script src="../js/js.cookie.min.js"></script>
+	<link href="../css/select2.min.css" rel="stylesheet" />
+	<script src="../js/moment.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script src="../js/select2.full.js"></script>
+	<script src="../js/nice/helper.js"></script>
+	<script src="../js/nice/user.js"></script>
+	<script src="../js/nice/USD.js"></script>
+	<script src="../js/nice/currency.js"></script>
+	<script src="../js/nice/trade.js"></script>
+	<script src="../js/nice/notifications.js"></script>
+	<script src="../js/nice/messages.js"></script>
+
+	<script src="js/nice/admin.js"></script>
+	<script>
+		adminDebug=true;
+        var editUserId=getQueryVariable('editUserId');
+		Cookies.set("editUserId",editUserId, { expires: 365 });
+        function pageLoaded(){
+            admin.verifyAdminSession();
+            getUser(editUserId);
+
+
+
+        }
+
+        
+
+        function getUser(editUserId){
+            admin.getUser(admin.sessionId,editUserId, function(responseJSON){
+                response=JSON.parse(responseJSON);
+                
+				document.getElementById("editUserId").value=response[0].userId;
+				document.getElementById("firstName").value=response[0].firstName;
+				document.getElementById("lastName").value=response[0].lastName;
+				document.getElementById("email").value=response[0].email;
+				document.getElementById("phone").value=response[0].phone;
+				document.getElementById("password").value=response[0].password;
+            });
+        }
+
+		function updateUser(){
+            var action="updateTrader";
+            
+		  	var editUserId=document.getElementById('editUserId').value
+			var firstName=document.getElementById('firstName').value
+			var lastName=document.getElementById('lastName').value
+			var phone=document.getElementById('phone').value
+			var email=document.getElementById('email').value
+			var password=document.getElementById('password').value
+			
+			admin.updateUser(admin.sessionId,editUserId,firstName,lastName,email,phone,password, function(responseJSON){
+                response=JSON.parse(responseJSON);
+				document.getElementById("message").innerHTML="User data has been saved";
+			});
+		}
+
+		
+	</script>
+	</head>
+
+
+	<body onload="pageLoaded()">
+
+	<!-- ===============================================-->
+	<!--    Main Content-->
+	<!-- ===============================================-->
+	<main class="main" id="top">
+
+
+
+		<div class="container" data-layout="container">
+		
+		
+		<div class="content">
+
+
+			<nav class="navbar navbar-light navbar-glass navbar-top navbar-expand">
+
+				<button class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle Navigation"><span class="navbar-toggle-icon"><span class="toggle-line"></span></span></button>
+				<a class="navbar-brand me-1 me-sm-3" href="index.html">
+					<div class="d-flex align-items-center"><img class="me-2" src="../images/nicesymbol.png" alt="" width="40" /><span class="font-sans-serif">NICE Traders</span>
+					</div>
+				</a>
+				<ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+					
+					<li class="nav-item dropdown">
+					<a class="nav-link notification-indicator notification-indicator-primary px-0 icon-indicator" id="navbarDropdownNotification" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="fas fa-bell" data-fa-transform="shrink-6" style="font-size: 33px;"></span></a>
+					<div class="dropdown-menu dropdown-menu-end dropdown-menu-card" aria-labelledby="navbarDropdownNotification">
+						<div class="card card-notification shadow-none">
+							<div class="card-header">
+								<div class="row justify-content-between align-items-center">
+								<div class="col-auto">
+									<h6 class="card-header-title mb-0">Notifications</h6>
+								</div>
+								<div class="col-auto"><a class="card-link fw-normal" href="#">Mark all as read</a></div>
+								</div>
+							</div>
+							<div class="scrollbar-overlay" style="max-height:19rem">
+								<div class="list-group list-group-flush fw-normal fs--1">
+								<div class="list-group-title border-bottom">NEW</div>
+								<div id="notificationItems">
+
+								</div>
+								
+							</div>
+							<div class="card-footer text-center border-top"><a class="card-link d-block" href="app/social/notifications.html">View all</a></div>
+						</div>
+					</div>
+
+					</li>
+					<li class="nav-item dropdown"><a class="nav-link pe-0" id="navbarDropdownUser" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<div class="avatar avatar-xl">
+						<img class="rounded-circle" src="../assets/img/team/3-thumb.png" alt="" />
+
+						</div>
+					</a>
+					<div class="dropdown-menu dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
+						
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="profile.html">My Profile</a>
+						<a class="dropdown-item" href="changePassword.html">Change Password</a>
+
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" onclick="user.logout();return false;" href="#">Logout</a>
+						</div>
+					</div>
+					</li>
+				</ul>
+			</nav>
+
+			<a href="index.html">Back to user list</a>
+			<div class="row g-0">
+				<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+					<div class="card h-md-100">
+						<div class="card-header d-flex flex-between-center bg-light py-2">
+							<div class="row flex-between-center">
+								<div class="col-auto">
+									<h4 class="mb-0">Edit User</h6>
+								</div>
+								<div class="col-auto d-flex">
+									
+								</div>
+							</div>
+						</div>
+						<div class="card-body">
+							<div class="row h-100 justify-content-between g-0">
+								<div class="col-5 col-sm-6 col-xxl pe-2">
+									
+										<div id="message" style="color:blue;"></div>
+										
+										<input type="hidden" id="editUserId" value=""><br>
+										<div class="form-group">
+											<label for="event-name">First Name:</label>
+											<input class="form-control" type="text" id="firstName" value="">
+											
+											<label for="event-name">Last Name:</label>
+											<input class="form-control" type="text" id="lastName" value="">
+
+											<label for="event-name">Email:</label>
+											<input class="form-control" type="text" id="email" value="">
+
+											<label for="event-name">Phone:</label>
+											<input class="form-control" type="text" id="phone" value="">
+
+											<label for="event-name">Password:</label>
+											<input class="form-control" type="text" id="password" value="">
+											<br>
+											<input type="button" class="btn btn-primary" onclick="updateUser();return false;" value="Update Trader">
+
+										</div>
+										
+										 <br>
+										
+									
+								</div>
+							</div>
+						</div>
+						
+					</div>
+
+
+					
+				</div>
+				<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+					<div class="card h-md-100">
+						<div class="card-header d-flex flex-between-center bg-light py-2">
+							<div class="row flex-between-center">
+								<div class="col-auto">
+									<h4 class="mb-0">User Actions</h6>
+								</div>
+								
+							</div>
+						</div>
+						<div class="card-body">
+							<div class="row h-100 justify-content-between g-0">
+								<div class="col-5 col-sm-6 col-xxl pe-2">
+									
+									<a href="listUserAddresses.html">List User Addresses</a><br>
+									<a href="listUserTrades.html">List User Trades</a><br>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+
+
+					
+				</div>
+			</div>
+
+			<div class="row g-0">
+				<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+					<div class="card h-md-100">
+						<div class="card-header d-flex flex-between-center bg-light py-2">
+							<div class="row flex-between-center">
+								<div class="col-auto">
+									<h4 class="mb-0">Payments</h6>
+								</div>
+								<div class="col-auto d-flex">
+									<input type="text" class="form-control" id="userSearch">
+									<input type="button" onclick="" class="btn btn-primary" value="Search">
+								
+								</div>
+							</div>
+						</div>
+						<div class="card-body">
+							<div class="row h-100 justify-content-between g-0">
+								<div class="col-5 col-sm-6 col-xxl pe-2">
+									
+									<div class="scrollbar-overlay" style="min-width:400px;max-height:19rem">
+										<table class="table table-hover mb-0 table-borderless table-striped">
+											<thead class="bg-light">
+												<tr>
+													<th nowrap>??</th>
+													<th nowrap>??</th>
+												</tr>
+											</thead>
+											<tbody id="trades">
+
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+
+
+					
+				</div>
+				<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+					<div class="card h-md-100">
+						<div class="card-body">
+							<div class="row h-100 justify-content-between g-0">
+								<div class="col-5 col-sm-6 col-xxl pe-2">
+									
+								</div>
+							</div>
+						</div>
+						
+					</div>
+
+
+					
+				</div>
+			</div>
+
+			<div class="row g-0">
+				<div class="col-lg-12 col-xl-12 pe-lg-2 mb-3">
+					<div class="card h-md-100">
+						<div class="card-body">
+							<div class="row h-100 justify-content-between g-0">
+								
+									
+							</div>
+						</div>
+						
+					</div>
+
+
+					
+				</div>
+				
+			</div>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<footer>
+			<div class="row g-0 justify-content-between fs--1 mt-4 mb-3">
+				<div class="col-12 col-sm-auto text-center">
+				<p class="mb-0 text-600"><br class="d-sm-none" /> 2021 &copy; NICE Traders</p>
+				</div>
+				<div class="col-12 col-sm-auto text-center">
+				<p class="mb-0 text-600"></p>
+				</div>
+			</div>
+			</footer>
+		</div>
+		
+		</div>
+	</main>
+	<!-- ===============================================-->
+	<!--    End of Main Content-->
+	<!-- ===============================================-->
+
+
+
+	<!-- ===============================================-->
+	<!--    JavaScripts-->
+	<!-- ===============================================-->
+	<script src="../assets/vendors/popper/popper.min.js"></script>
+	<script src="../assets/vendors/bootstrap/bootstrap.min.js"></script>
+	<script src="../assets/vendors/anchorjs/anchor.min.js"></script>
+	<script src="../assets/vendors/is/is.min.js"></script>
+
+	
+	<script src="../assets/vendors/fontawesome/all.min.js"></script>
+	<script src="../assets/vendors/lodash/lodash.min.js"></script>
+	<script src="../https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+	<script src="../assets/vendors/list.js/list.min.js"></script>
+	<script src="../assets/js/theme.js"></script>
+
+	</body>
+
+</html>

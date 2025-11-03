@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>NICE Traders Admin</title>
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicons/favicon-16x16.png">
+<link rel="shortcut icon" type="image/x-icon" href="../assets/img/favicons/favicon.ico">
+<link rel="manifest" href="../assets/img/favicons/manifest.json">
+<meta name="msapplication-TileImage" content="../assets/img/favicons/mstile-150x150.png">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<link href="../assets/vendors/bootstraptheme/css/theme.min.css" rel="stylesheet" id="style-default">
+<link href="../assets/vendors/select2/select2.min.css" rel="stylesheet" />
+
+
+
+
+<script src="../assets/vendors/bootstraptheme/js/config.js"></script>
+<script src="../assets/vendors/jquery/jquery.js"></script>
+<script src="../assets/vendors/select2/select2.full.js"></script>
+<script src="../assets/vendors/moment/moment.js"></script>
+<script src="../assets/vendors/jscookie/js.cookie.min.js"></script>
+
+
+
+<script src="../assets/js/USD.js"></script>
+<script src="../assets/js/maps.js"></script>
+<script src="../assets/js/user.js"></script>
+<script src="../assets/js/trades.js"></script>
+<script src="../assets/js/wizard.js"></script>
+<script src="../assets/js/currency.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/users.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/trades.js"></script>
+<style>
+	#map {
+		height: 100%;
+	}
+</style>
+
+<script>
+	
+	if (window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
+		var basePath=window.location.protocol + "//" + window.location.host +":3000/";
+		var socketPath="ws://" + window.location.host +":3000/q";
+	} else if (window.location.hostname=="www.nicetraders.com" || window.location.hostname=="nicetraders.com"){
+		var socketPath="wss://" + window.location.host +"/q/";
+		var basePath=window.location.protocol + "//" + window.location.host +"/q/";
+	}
+
+	var app={};
+	
+	var objects={};
+	objects.pages=pages;
+	objects.admin=admin;
+	objects.users=users;
+	objects.trades=trades;
+		
+
+	
+	var map,marker;
+	var addressModal;
+	app.pageLoaded=function(){
+		
+		app.connectToWebSockets();
+		
+	}
+
+	app.onLoggedin=function(){
+		//console.log("loggedin");
+		users.getUsers();
+		users.getAddresses();
+		trades.getTrades();
+
+	}
+	
+
+	var connection;
+	app.connectToWebSockets=function (){
+		console.log("connectToWebSockets", socketPath)
+		connection = new WebSocket(socketPath);
+		connection.onopen = function(){
+			//console.log('connected 1, setting heartbeat');
+			admin.verifyAdminSession();
+		};
+
+		connection.onclose = function() {
+			console.error('disconnected');
+			setTimeout(connectToWebSockets,10000);
+		};
+
+		connection.onerror = function(error) {
+			console.error('failed to connect', error);
+		};
+
+		connection.onmessage = function(event){
+			var command;
+			if (event.data){
+				try{
+					command=JSON.parse(event.data);
+					//console.log(command);
+				} catch(err){
+					//console.log("error",event,err);
+					return;
+				}
+			} else{
+				//console.log("error",event,err);
+				return;
+			}
+			if (command.object && command.method && command.data){
+				//console.log("from server",command);
+				try{
+					objects[command.object][command.method](command.data,
+						function(success){
+							if (success.object && success.method && success.data){
+							//console.log("GO!");
+								objects[success.object][success.method](success.data);
+							}
+						}
+						,
+						function(response){
+							//console.log("failure",response);
+
+						}
+						
+					);
+				}
+				catch(err){
+					console.error("error",err);
+				}
+			} else{
+				//console.log("error",command);
+
+			}
+			
+
+
+			
+		};
+
+	
+
+	}
+</script>
+</head>
+
+
+<body onload="app.pageLoaded();">
+
+	
+
+<div class="main container content" data-layout="container">
+
+
+	<div id="navbar" style="display:none;" class="navbar navbar-light navbar-glass navbar-expand">
+
+		<button class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle Navigation"><span class="navbar-toggle-icon"><span class="toggle-line"></span></span></button>
+		<a class="navbar-brand me-1 me-sm-3" onclick="pages.go('dashboardPage',true);" href="#">
+			<div class="d-flex align-items-center">
+				<img class="me-2" src="../assets/img/nicesymbol.png" alt="" width="40" />
+				<span class="font-sans-serif">NICE Traders</span>
+			</div>
+		</a>
+		<ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+			
+			<li class="nav-item dropdown">
+				<a class="nav-link notification-indicator notification-indicator-primary px-0 icon-indicator" id="navbarDropdownNotification" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+				<div class="dropdown-menu dropdown-menu-end dropdown-menu-card" aria-labelledby="navbarDropdownNotification">
+					<div class="card card-notification shadow-none">
+						<div class="card-header">
+							<div class="row justify-content-between align-items-center">
+								<div class="col-auto">
+									<h6 class="card-header-title mb-0">Notifications</h6>
+								</div>
+								<div class="col-auto"><a class="card-link fw-normal" href="#">Mark all as read</a></div>
+							</div>
+						</div>
+						<div class="scrollbar-overlay" style="max-height:19rem">
+							<div class="list-group list-group-flush fw-normal fs--1">
+							<div class="list-group-title border-bottom">NEW</div>
+							<div id="notificationItems">
+
+							</div>
+							
+						</div>
+						<div class="card-footer text-center border-top"><a class="card-link d-block" href="app/social/notifications.html">View all</a></div>
+					</div>
+				</div>
+
+			</li>
+			<li class="nav-item dropdown">
+				<a class="nav-link pe-0" id="navbarDropdownUser" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<div class="avatar avatar-xl">
+						<img src="../assets/img/cog.png" width="33">
+					</div>
+				</a>
+				<div class="dropdown-menu dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
+					
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" onclick="pages.go('myProfile',true);return false;" href="#">My Profile</a>
+					<a class="dropdown-item" onclick="pages.go('changePassword',true);return false;" href="#">Change Password</a>
+
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" onclick="admin.logout();return false;" href="#">Logout</a>
+					
+				</div>
+			</li>
+		</ul>
+	</div>
+
+
+	<div id="loginPage" style="display:none;">
+		<div class="row min-vh-100 flex-center g-0">
+			<div class="col-lg-8 col-xxl-5 py-3 position-relative"><img class="bg-auth-circle-shape" src="../assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="../assets/img/illustrations/shape-1.png" alt="" width="150">
+				<div class="card overflow-hidden z-index-1">
+					<div class="card-body p-0">
+						<div class="row g-0 h-100">
+							<div class="col-md-5 text-center bg-card-gradient">
+								<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+									<div class="bg-holder bg-auth-card-shape" style="background-image:url(../assets/img/illustrations/half-circle.png);">
+									</div>
+									<!--/.bg-holder-->
+
+									<div class="z-index-1 position-relative">
+										
+									<p class="opacity-75 text-white">NICE Traders admin</p>
+									</div>
+								</div>
+								<div class="mt-3 mb-4 mt-md-4 mb-md-5 light">
+									<p class="pt-3 text-white">Don't have an account?<br>
+									Ask an administrator
+									</p>
+													
+									<p class="mb-0 mt-4 mt-md-5 fs--1 fw-semi-bold text-white opacity-75">
+										</p>
+								</div>
+							</div>
+							<div class="col-md-7 d-flex flex-center">
+								<div class="p-4 p-md-5 flex-grow-1">
+									
+									<div class="row flex-between-center">
+										<div id="errorMsg" style="color:red;"></div>
+										<div class="col-auto">
+											<h3>Account Login</h3>
+										</div>
+									</div>
+									<form class="row g-3 needs-validation" id="loginPage" novalidate="novalidate" action="#">
+									<div class="mb-3">
+										
+										<label class="form-label" for="email">Email</label>
+										<input class="form-control" id="login-email" type="email" autocomplete="email" value="" required />
+										<div class="invalid-feedback">You must add your email</div>
+										<div class="valid-feedback">Looks good!</div>
+
+									</div>
+									<div class="mb-3">
+										<div class="d-flex justify-content-between">
+											<label class="form-label" for="card-password">Password</label>
+											
+										</div>
+										<input class="form-control" id="login-password" autocomplete="current-password" type="password"required/>
+										<div class="invalid-feedback">You must add your password</div>
+										<div class="valid-feedback">Looks good!</div>
+									</div>
+									<!--<div class="form-check mb-0">
+										<input class="form-check-input" type="checkbox" id="card-checkbox" checked="checked" />
+										<label class="form-check-label" for="card-checkbox">Remember me</label>
+									</div>-->
+									<div class="mb-3">
+										<button class="btn btn-primary d-block w-100 mt-3" type="button" onclick="admin.login();">Login</button>
+									</div>
+									</form>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+
+
+
+	<div  id="loggedOut" style="display:none;">
+		<div class="row min-vh-100 flex-center g-0">
+			<div class="col-lg-8 col-xxl-5 py-3 position-relative"><img class="bg-auth-circle-shape" src="../assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="../assets/img/illustrations/shape-1.png" alt="" width="150">
+				<div class="card overflow-hidden z-index-1">
+					<div class="card-body p-0">
+						<div class="row g-0 h-100">
+							<div class="col-md-5 text-center bg-card-gradient">
+								<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+									<div class="bg-holder bg-auth-card-shape" style="background-image:url(../assets/img/illustrations/half-circle.png);">
+									</div>
+									<!--/.bg-holder-->
+
+									<div class="z-index-1 position-relative"><span class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" >NICE Traders</span>
+										<p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travellers</p>
+									</div>
+								</div>
+								<div class="mt-3 mb-4 mt-md-4 mb-md-5 light">
+									<p class="mb-0 mt-4 mt-md-5 fs--1 fw-semi-bold text-white opacity-75"></p>
+								</div>
+							</div>
+							<div class="col-md-7 d-flex flex-center">
+								<div class="p-4 p-md-5 flex-grow-1">
+									<div class="text-center"><img class="d-block mx-auto mb-4" src="../assets/img/illustrations/rocket.png" alt="shield" width="70" />
+										<h3>See you again!</h3>
+										<p>Thanks for using NICE Traders! You are <br />now successfully signed out.</p><a class="btn btn-primary btn-sm mt-3" onclick="pages.go('loginPage',false);return false;" href="#"><span class="fas fa-chevron-left me-1" data-fa-transform="shrink-4 down-1"></span>Return to Login</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+	
+	</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<div  id="dashboardPage" style="display: none;">
+		<div class="row g-0">
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-header d-flex flex-between-center bg-light py-2">
+						<div class="row flex-between-center">
+							<div class="col-auto">
+								<h4 class="mb-0">Users</h6>
+							</div>
+							<div class="col-auto d-flex">
+								<input type="text" class="form-control" id="userSearch">
+								<input type="button" onclick="getUsers(document.getElementById('userSearch').value);" class="btn btn-primary" value="Search">
+							
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								
+								<div class="scrollbar-overlay" style="min-width:400px;max-height:19rem">
+									<table class="table table-hover mb-0 table-borderless table-striped">
+										<thead class="bg-light">
+											<tr>
+												<th nowrap>Name</th>
+												<th nowrap>Email</th>
+											</tr>
+										</thead>
+										<tbody id="users">
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-header d-flex flex-between-center bg-light py-2">
+						<div class="row flex-between-center">
+							<div class="col-auto">
+								<h4 class="mb-0">Trades</h6>
+							</div>
+							<div class="col-auto d-flex">
+								<input type="text" class="form-control" id="tradeSearch">
+								<input type="button" onclick="" class="btn btn-primary" value="Search">
+							
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								
+								<div class="scrollbar-overlay" style="min-width:400px;max-height:19rem">
+									<table class="table table-hover mb-0 table-borderless table-striped">
+										<thead class="bg-light">
+											<tr>
+												<th nowrap>Name</th>
+												<th nowrap>Want</th>
+												<th nowrap>Have</th>
+											</tr>
+										</thead>
+										<tbody id="trades">
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+		</div>
+
+		<div class="row g-0">
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-header d-flex flex-between-center bg-light py-2">
+						<div class="row flex-between-center">
+							<div class="col-auto">
+								<h4 class="mb-0">Payments</h6>
+							</div>
+							<div class="col-auto d-flex">
+								<input type="text" class="form-control" id="paymentSearch">
+								<input type="button" onclick="" class="btn btn-primary" value="Search">
+							
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								
+								<div class="scrollbar-overlay" style="min-width:400px;max-height:19rem">
+									<table class="table table-hover mb-0 table-borderless table-striped">
+										<thead class="bg-light">
+											<tr>
+												<th nowrap>??</th>
+												<th nowrap>??</th>
+											</tr>
+										</thead>
+										<tbody id="trades">
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+		</div>
+
+		<div class="row g-0">
+			<div class="col-lg-12 col-xl-12 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							
+								
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+			
+		</div>
+
+		
+	</div>
+
+
+		
+	<div id="editUser" style="display:none;">
+		<div class="row g-0">
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-header d-flex flex-between-center bg-light py-2">
+						<div class="row flex-between-center">
+							<div class="col-auto">
+								<h4 class="mb-0">Edit User</h6>
+							</div>
+							<div class="col-auto d-flex">
+								
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								
+									
+									
+									<input type="hidden" id="editUserId" value=""><br>
+									<div class="form-group">
+										<label for="event-name">First Name:</label>
+										<input class="form-control" type="text" id="firstName" value="">
+										
+										<label for="event-name">Last Name:</label>
+										<input class="form-control" type="text" id="lastName" value="">
+
+										<label for="event-name">Email:</label>
+										<input class="form-control" type="text" id="email" value="">
+
+										<label for="event-name">Phone:</label>
+										<input class="form-control" type="text" id="phone" value="">
+
+										<label for="event-name">Password:</label>
+										<input class="form-control" type="text" id="password" value="">
+										<br>
+										<input type="button" class="btn btn-primary" onclick="users.updateUser();return false;" value="Update Trader">
+										
+									</div>
+									<span id="userUpdatedMSG" style="color:red;"></span>
+									<br>
+									
+								
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+			<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+				<div class="card h-md-100">
+					<div class="card-header d-flex flex-between-center bg-light py-2">
+						<div class="row flex-between-center">
+							<div class="col-auto">
+								<h4 class="mb-0">User Actions</h6>
+							</div>
+							
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row h-100 justify-content-between g-0">
+							<div class="col-5 col-sm-6 col-xxl pe-2">
+								<div class="table-responsive scrollbar">
+									<table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200">
+										<thead class="bg-light">
+
+										<tr>
+											<th nowrap>AddressId</th>
+											<th nowrap>Address 1</th>
+											<th nowrap>Address 2</th>
+											<th nowrap>City</th>
+											<th nowrap>State</th>
+											<th nowrap>Zip</th>
+											<th nowrap>Country</th>
+											<th nowrap>Date Added</th>
+											<th nowrap>lat</th>
+											<th nowrap>lng</th>
+										</tr>
+										
+										</thead>
+										<tbody id="addresses">
+
+										</tbody>
+									</table>
+								</div>
+								<a href="listUserAddresses.html">List User Addresses</a><br>
+								<a href="listUserTrades.html">List User Trades</a><br>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+
+
+				
+			</div>
+		</div>
+	</div>
+
+
+
+		
+
+</div>
+
+
+
+	<script src="../assets/vendors/popper/popper.min.js"></script>
+	<script src="../assets/vendors/bootstrap/bootstrap.min.js"></script>
+	<script src="../assets/vendors/fontawesome/all.min.js"></script>
+</body>
+
+</html>

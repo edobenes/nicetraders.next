@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+		<meta name="description" content="My Nice Traders" />
+		<meta name="keywords" content="Neighborhood International Currency Exchange, Nice Traders, trade currency, money, USD, Dollars, neighbors, traders" />
+		<meta name="author" content="Nice Traders" />
+
+		
+		<title>NICE Traders</title>
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicons/favicon-16x16.png">
+		<link rel="shortcut icon" type="image/x-icon" href="/img/favicons/favicon.ico">
+		<link rel="manifest" href="/img/favicons/manifest.json">
+		<meta name="msapplication-TileImage" content="/img/favicons/mstile-150x150.png">
+		<meta name="theme-color" content="#ffffff">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+		<link rel="stylesheet" href="/css/bulma.css">
+		<link rel="stylesheet" href="/css/bulma-custom.css">
+		<link rel="stylesheet" href="/css/bulma-steps.min.css">
+		
+		<script src="/js/bulma-steps.min.js"></script>
+		<script src="/js/bulma-simple-validator.js"></script>
+		
+		
+		<!-- <script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script> -->
+		<!-- <script src="/vendors/bootstraptheme/js/config.js"></script> -->
+		<script src="/vendors/moment/moment.js"></script>
+		<script src="/vendors/jscookie/js.cookie.min.js"></script>
+		<script>
+			var urlParams = new URLSearchParams(window.location.search);
+
+			affiliateId= urlParams.get('affiliateId');
+			if (affiliateId){
+				Cookies.set("affiliateId",affiliateId, { expires: 365 });
+				console.log("save "+affiliateId)
+            }
+			
+			function go(path){
+				location.href=path
+			}
+		</script>
+		</head>
+		
+		
+		
+
+		
+
+		
+		<meta http-equiv="content-security-policy" content=""><script src="/js/USD.js?now=1680191866489" data-svelte="svelte-13d8ge0"></script><script src="/vendors/bootstraptheme/js/config.js" data-svelte="svelte-13d8ge0"></script><script src="/vendors/bootstrap/bootstrap.min.js" data-svelte="svelte-13d8ge0"></script><script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC" data-svelte="svelte-13d8ge0"></script><script data-svelte="svelte-13d8ge0">let paymentModal;
+		paymentModalEL = document.getElementById('payment-modal')
+		paymentModal= new bootstrap.Modal(paymentModalEL, {
+			keyboard: false
+		});
+	
+		// function initPayPalButton() {
+		// 	paypal.Buttons(
+		// 		{
+		// 			locale: 'en_US',
+		// 			style: {
+		// 				shape: 'pill',
+		// 				color: 'gold',
+		// 				layout: 'vertical',
+		// 				label: 'pay',
+		// 				size: 'medium'
+		// 			},
+
+		// 			createOrder: function(data, actions) {
+		// 				return actions.order.create({
+		// 					purchase_units: [{"amount":{"currency_code":"USD","value":1}}]
+		// 				});
+		// 			},
+
+		// 			onApprove: function(data, actions) {
+						
+		// 				//console.log("data",data.orderId);
+		// 				//console.log("actions",actions);
+		// 				return actions.order.capture().then(function(details) {
+		// 					console.log("paypal details",details);
+		// 					let command={}
+		// 					command.object="trades"
+		// 					command.data={};
+		// 					command.data.sessionId=Session.sessionId();
+		// 					command.data.tradeMatchId=tradeMatchId;
+		// 					if (iam=='buyer'){
+		// 						command.method='buyerPayment';
+		// 						command.data.buyerOrderId=details.id;
+		// 					} else{
+		// 						command.method='sellerPayment';
+		// 						command.data.sellerOrderId=details.id;
+
+		// 					}
+		// 					console.log("abc");
+		// 					console.log(command);
+		// 					console.log(window.location.hostname);
+		// 					console.log("abcd");
+		// 					var endpoint="https://" + window.location.hostname +port+"/q?command="+JSON.stringify(command);
+		// 					console.log(endpoint);
+		// 					fetch(endpoint)
+		// 					.then((response) => response.json())
+		// 					.then((results) => {
+		// 						console.log(results);
+		// 						//should this go here?
+		// 						location.href="/trade4?tradeSearchId="+tradeSearchId;
+		// 						paymentModal.hide();
+		// 					});
+							
+		// 					paymentModal.hide();
+
+		// 				});
+		// 			},
+
+		// 			onError: function(err) {
+		// 				console.log("paypal error",err);
+		// 			}
+		// 		}
+		// 	).render('#paypal-button-container');
+		// }
+	</script>
+	<link rel="stylesheet" href="/_app/immutable/assets/pages/loading.svelte-8d9bacd0.css">
+	<link rel="modulepreload" href="/_app/immutable/start-ea12a2af.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-ce66fda8.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/index-b471da84.js">
+	<link rel="modulepreload" href="/_app/immutable/layout.svelte-ee30f3e9.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/trade3.svelte-16ac4871.js">
+	<link rel="modulepreload" href="/_app/immutable/chunks/navbarLoggedIn-0f69a9f5.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/loading.svelte-57c98827.js">
+	<link rel="modulepreload" href="/_app/immutable/pages/session.svelte-be531f44.js">
+	</head>
+	<body>
+		<div id="svelte">
+
+
+
+
+
+
+
+<div class="isLoading svelte-1q6f4vh" style="">Loading...
+		
+	
+		<span style="position: absolute; bottom: 0; right: 0; width: 50px; height: 50px; "></span></div>
+
+
+<nav class="navbar is-transparent" aria-label="dropdown navigation"><div class="navbar-brand"><a class="navbar-brand mr-auto" href="/dashboard" aria-label="Click to go back to Homepage"><span width="240" class="logo"><img width="240" alt="" src="img/NICE-TRADERS-LOGO.png"></span></a></div>
+
+	<div class="navbar-menu"><div class="navbar-start">
+			<div class="navbar-item has-dropdown is-right is-hoverable"><a class="navbar-link" href="#">Menu</a>
+				<div class="navbar-dropdown is-boxed"><p class="pl-2 has-text-weight-bold">Trade</p>
+                    <a class="navbar-item" href="/dashboard">My Dashboard</a>
+					
+					<a class="navbar-item" href="/trade1?tradeSearchId=&type=sell">I have extra foreign currency</a>
+					<a class="navbar-item" href="/trade1?tradeSearchId=&type=buy">I am need foreign currency</a>
+                    
+					<hr class="navbar-divider">
+                    
+                    <p class="pl-2 has-text-weight-bold">Account</p>
+					<a class="navbar-item" href="/profile">My Account</a>
+					<a class="navbar-item" href="/changePassword">Change Password</a>
+					<a class="navbar-item" href="/loggedOut">Logout</a>
+					
+					<hr class="navbar-divider">
+					<p class="pl-2 has-text-weight-bold">Affiliate</p>
+                    <a class="navbar-item" href="/affiliateProgram">Earn Money with Nice Traders</a></div></div></div>
+		<div class="navbar-end"><div class="navbar-item"><div class="buttons"><a href="/trade1?type=buy&tradeSearchId=" class="button is-danger"><strong>Buy</strong></a>
+					<a href="/trade1?type=sell&tradeSearchId=" class="button is-info">Sell</a></div></div></div></div></nav>
+
+
+<div class="container">
+	<div class="card"><div class="card-content has-background-light"><div class="steps"><div class="step-item is-completed "><div class="step-marker"><span class="icon"><i class="fa fa-question"></i></span></div>
+					</div>
+
+				<div class="step-item is-completed "><div class="step-marker"><span class="icon"><i class="fa fa-dollar-sign"></i></span></div>
+					</div>
+
+				<div class="step-item is-active"><div class="step-marker"><span class="icon"><i class="fa fa-search"></i></span></div>
+					</div>
+				<div class="step-item"><div class="step-marker"><span class="icon"><i class="fa fa-handshake"></i></span></div>
+					</div></div></div>
+		<div class="card-content"><div class="content"><h4>Buy Foreign Currency</h4>
+				<br><br>
+				<div id="editSellDeleteBtns" style="float:right;display:none;">
+					<button class="button btn-light border-300 btn-sm me-1 text-600 shadow-none" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><img src="/img/trash.svg" alt="" width="15"></button></div>
+				<div class="d-flex mb-1"><div class="d-flex"><div class="spacer is-2"></div></div></div>
+				<br>
+				
+				<div class="d-flex mb-1"><div class="d-flex">We update the exchange rates every day. As of today, </div></div>
+				
+
+				
+				<div class="d-flex mb-1"><div class="d-flex">My Location:
+						undefined undefined undefined undefined undefined undefined 
+						and am willing to travel: 
+						NaN Miles</div></div>
+				<hr></div>
+			<div class="px-sm-3 px-md-5"><div class="px-sm-3 px-md-5" style="text-align: center;" id="noMatches"><b>No matches were found.</b>
+					<p class="has-text-centered has-text-justified">Sorry, , but at this time, no one matching your search criteria is in our system.  Don&#39;t worry, though, because more people sign up daily, and we will notify you when a match is made.  Feel free to change the distance you are willing to travel for a trade.  There may be someone just a little farther away.</p>
+					<button class="button is-info" type="button" href="/dashboard"><span class="fas fa-search" data-fa-transform="shrink-3"></span>Search List
+					</button></div></div></div>
+		
+		<div class="card-content has-background-light"><div class="columns is-flex"><div class="column" style="padding-left: 1rem; height: 50px;"><button class="button is-info is-pulled-left" type="button"><span class="fas fa-chevron-left me-2" data-fa-transform="shrink-3"></span>Prev
+					</button></div>
+				<div class="spacer is-2"></div>
+				<div class="column" style="padding-right: 1rem;"><button class="button is-info is-pulled-right" type="button" href="/dashboard"><span class="fas fa-search" data-fa-transform="shrink-3"></span>Search List
+						</button></div></div></div></div></div>
+
+<div class="modal" id="payment-modal"><div class="modal-background"></div>
+	<div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Address</p>
+			<button class="delete"></button></header>
+		<section class="modal-card-body"><div class="rounded-top-lg py-3 ps-4 pe-6 bg-light"><h4 class="mb-1" id="modalExampleDemoLabel">Payment</h4></div>
+			<div class="p-4 pb-0"><p class="text-center">To complete this transaction will cost $1.</p>
+				<div id="smart-button-container"><div style="text-align: center;"><div id="paypal-button-container"></div></div></div></div></section>
+		<footer class="modal-card-foot"></footer></div></div>
+
+
+		<script type="module" data-sveltekit-hydrate="tums5q">
+		import { start } from "/_app/immutable/start-ea12a2af.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="tums5q"]').parentNode,
+			paths: {"base":"","assets":""},
+			session: {},
+			route: true,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [0, 29],
+				params: {},
+				routeId: "trade3"
+			}
+		});
+	</script></div>
+
+		<!-- <script src="/vendors/bootstrap/bootstrap.min.js"></script>
+		<script src="/vendors/fontawesome/all.min.js"></script> -->
+
+		
+	</body>
+</html>

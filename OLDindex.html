@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<title>NICE Traders</title>
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+<link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+<link rel="manifest" href="assets/img/favicons/manifest.json">
+<meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<link href="assets/vendors/bootstraptheme/css/theme.min.css" rel="stylesheet" id="style-default">
+<link href="assets/vendors/select2/select2.min.css" rel="stylesheet" />
+
+
+<script>
+	var app={};
+	var connection={};
+	app.setUrlVariables=function(){
+		app.url={};
+		var urlParams = new URLSearchParams(window.location.search);
+		urlParams.forEach(function(value, name){
+			app.url[name]=value;
+		});
+		// console.log("app.url",app.url);
+	}
+	app.setUrlVariables();
+	//trades.activeTrade.tradeSearchId = urlParams.get("tradeSearchId");
+	app.onPressEnter=function(obj, onSuccess){
+		if (event.keyCode === 13) {
+			event.preventDefault();
+			onSuccess();
+		}
+	}	
+</script>
+
+<script src="https://www.paypal.com/sdk/js?client-id=AZlQVE56VmK3os81JPuyskWG7v9FkrAbc-VDzA9H0Om92OE4CFKoj6uW4mqCripSH07IR09QYTOzqCeC"></script>
+<script src="assets/vendors/bootstraptheme/js/config.js"></script>
+<script src="assets/vendors/jquery/jquery.js"></script>
+<script src="assets/vendors/select2/select2.full.js"></script>
+<script src="assets/vendors/moment/moment.js"></script>
+<script src="assets/vendors/jscookie/js.cookie.min.js"></script>
+
+
+
+
+<script src="assets/js/exceptions.js"></script>
+<script src="assets/js/USD.js"></script>
+<script src="assets/js/maps.js"></script>
+<script src="assets/js/user.js"></script>
+<script src="assets/js/addresses.js"></script>
+
+
+<script src="assets/js/trades.js"></script>
+<script src="assets/js/pages.js"></script>
+<script src="assets/js/currency.js"></script>
+<script src="assets/js/paypal.js"></script>
+<script src="assets/js/messages.js"></script>
+<script src="assets/js/connection.js"></script>
+
+<style>
+	#map {
+		height: 100%;
+	}
+</style>
+
+<script>
+	
+	if (window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
+		app.basePath=window.location.protocol + "//" + window.location.host +":3000/";
+		app.restPath="http://" + window.location.host +":3000/q";
+		app.socketPath="ws://" + window.location.host +":3000/q";
+	} else if (window.location.hostname=="www.nicetraders.net" || window.location.hostname=="nicetraders.net"){
+		
+		app.restPath=window.location.protocol+"//" + window.location.host +"/q";
+		app.socketPath=window.location.protocol+"//" + window.location.host +"/q";
+		
+		app.basePath=window.location.protocol + "//" + window.location.host +"/";
+	} else if (window.location.hostname=="www.nicetraders.com" || window.location.hostname=="nicetraders.com"){
+		
+		app.restPath="https://" + window.location.host +"/q";
+		app.socketPath="wss://" + window.location.host +"/q";
+		
+		app.basePath=window.location.protocol + "//" + window.location.host +"/";
+	} else if (window.location.hostname=="www.mynicelearner.com" || window.location.hostname=="mynicelearner.com"){
+		
+		app.restPath="https://" + window.location.host +"/q";
+		app.socketPath="wss://" + window.location.host +"/q";
+		
+		app.basePath=window.location.protocol + "//" + window.location.host +"/";
+	}  else{
+		app.restPath="http://" +"www.nicetraders.com/q";
+		app.socketPath="wss://" +"www.nicetraders.com/q";
+		
+		app.basePath=window.location.protocol + "//" + window.location.host +"/";
+	}
+
+	var USRate={"code":"USD","alphaCode":"USD","numericCode":"840","name":"USD","rate":1,"date":"Sun, 11 Jul 2021 11:55:01 GMT","inverseRate":1}
+
+	if (!exchangeRates.usd){
+		exchangeRates.usd=USRate;
+	}
+	
+	var objects={};
+	objects.user=user;
+	objects.pages=pages;
+	objects.trades=trades;
+	objects.messages=messages;
+	objects.addresses=addresses;
+	objects.exceptions=exceptions;
+
+	
+	var marker;
+	var addressModal;
+	var paymentModal;
+
+	
+	app.pageLoaded=function (){
+		connection.restPath=app.restPath;
+		app.connectToServer();
+
+		addressModalEL = document.getElementById('address-modal')
+		addressModal= new bootstrap.Modal(addressModalEL, {
+			keyboard: false
+		});
+		addressModalEL.addEventListener('hidden.bs.modal', function (event) {
+			addresses.cancelAddress();
+		});
+
+		paymentModalEL = document.getElementById('payment-modal')
+		paymentModal= new bootstrap.Modal(paymentModalEL, {
+			keyboard: false
+		});
+
+	}
+
+	app.isDataLoaded=false;
+	app.redirect=false;
+	app.allDataLoaded=function(){
+		var isDataLoaded=true;
+		for (var i in objects){
+			if (!objects[i].isLoaded){
+				isDataLoaded=false;
+				break;
+			}
+		}
+		app.isDataLoaded=isDataLoaded;
+		if (app.isDataLoaded){
+			app.startTimers();
+			var page=window.location.hash.replace("#","");
+
+			if (app.redirect || page=="error" || page.length==0){
+				pages.go("dashboardPage");
+			} else if (page.length>0){
+				
+				var querystring="";
+				for(var i in app.url){
+					querystring=querystring+i+"="+app.url[i];
+				}
+				pages.go(page,querystring);
+			}
+		}
+	}
+	app.startTimers=function(){
+		messages.checkMessages();
+	}
+	
+	app.onLoggedin=function(redirect){
+		app.redirect=redirect;
+		user.get(user.data.session);
+		addresses.get(user.data.session);
+		messages.getMessages(user.data.session);
+		trades.getTradeSearches(user.data.session);
+		
+	}
+	
+	app.connectToServer=function (){
+		user.verifySession();
+	}
+
+
+	app.onMessage = function(command){
+		if (command.object && command.method && command.data){
+			try{
+				objects[command.object][command.method](command.data,
+					function(success){
+						console.log("success",success);
+						if (success.object && success.method && success.data){
+						//console.log("GO!",success.object,success.method,success.data);
+							objects[success.object][success.method](success.data);
+						}
+					} ,
+					function(response){
+						console.log("failure",response);
+
+					}
+					
+				);
+				if (!app.isDataLoaded){
+					app.allDataLoaded();
+				}
+			}
+			catch(err){
+				console.error("error",err);
+				console.error("error",err);
+			}
+		} else{
+			console.log("error",command);
+
+		}
+	};
+
+	
+</script>
+</head>
+
+
+<body>
+
+<main class="main" id="top">
+	
+
+	<div class="container" data-layout="container">
+		<div class="content">
+
+
+			<div id="navbar" style="display:none;" class="navbar navbar-light navbar-glass navbar-expand">
+
+				<button class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle Navigation"><span class="navbar-toggle-icon"><span class="toggle-line"></span></span></button>
+				<a class="navbar-brand me-1 me-sm-3"  role="button" href="index.html">
+					<div class="d-flex align-items-center">
+						<img class="me-2" src="assets/img/nicesymbol.png" alt="" width="40" />
+						<span class="font-sans-serif">NICE Traders</span>
+					</div>
+				</a>
+				<ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+					
+					<li class="nav-item dropdown">
+						<a class="nav-link notification-indicator notification-indicator-primary px-0 icon-indicator" id="navbarDropdownNotification"  role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+						<div class="dropdown-menu dropdown-menu-end dropdown-menu-card" aria-labelledby="navbarDropdownNotification">
+							<div class="card card-notification shadow-none">
+								<div class="card-header">
+									<div class="row justify-content-between align-items-center">
+										<div class="col-auto">
+											<h6 class="card-header-title mb-0">Notifications</h6>
+										</div>
+										<div class="col-auto"><a class="card-link fw-normal" >Mark all as read</a></div>
+									</div>
+								</div>
+								<div class="scrollbar-overlay" style="max-height:19rem">
+									<div class="list-group list-group-flush fw-normal fs--1">
+									<div class="list-group-title border-bottom">NEW</div>
+									<div id="notificationItems">
+
+									</div>
+									
+								</div>
+								<div class="card-footer text-center border-top"><a class="card-link d-block" href="app/social/notifications.html">View all</a></div>
+							</div>
+						</div>
+
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link pe-0" id="navbarDropdownUser"  role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<div class="avatar avatar-xl">
+								<img src="assets/img/cog.png" width="33">
+							</div>
+						</a>
+						<div class="dropdown-menu dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
+							
+							<div class="dropdown-divider"></div>
+							<a class="dropdown-item" onclick="pages.go('myProfile');return false;" >My Profile</a>
+							<a class="dropdown-item" onclick="pages.go('changePassword');return false;" >Change Password</a>
+
+							<div class="dropdown-divider"></div>
+							<a class="dropdown-item" onclick="user.logout();return false;" >Logout</a>
+							
+						</div>
+					</li>
+				</ul>
+			</div>
+
+
+			<!-- Information screens: -->
+
+			<div id="termsPage" style="display:none;">
+				<div class="card mb-3">
+					<div class="bg-holder d-none d-lg-block bg-card" style="background-image:url(assets/img/illustrations/corner-4.png);">
+					</div>
+					<!--/.bg-holder-->
+
+					<div class="card-body position-relative">
+						<div class="row">
+							<div class="col-lg-8">
+								<h3>Terms and Conditions</h3>
+								<p class="mb-0">Below are the terms and conditions for using My NICE Traders</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card mb-3">
+					<div class="card-body">
+						<h5> WELCOME TO My NICE Traders.</h5>
+						<p class="fs--1 mb-0">
+								We (My NICE Traders, Inc.) hope you find it useful. By accessing or otherwise interacting with our servers, services, websites, mobile app ("App"), or any associated content/postings (together, "MNT"), you agree to these Terms of Use ("TOU") (last updated June 17, 2021). You acknowledge and agree MNT is a private site owned and operated by My NICE Traders, Inc. If you are accessing or using MNT on behalf of a business, you represent and warrant to MNT that you have authority to accept the TOU on behalf of that business and that that business agrees to the TOU. If you do not agree to the TOU, you are not authorized to use MNT or download the App. We may modify the TOU at any time in our sole discretion. You are responsible for periodically checking for changes and are bound by them if you continue to use MNT. Our privacy policy (MNT.com/about/privacy.policy), prohibited list (MNT.com/about/prohibited), and all other policies, site rules, and agreements referenced below or on MNT, are fully incorporated into this TOU, and you agree to them as well.
+						</p>
+
+						<br><h5>LICENSE.</h5> 
+						<p class="fs--1 mb-0">
+							If you agree to the TOU and (1) are of sufficient age and capacity to use MNT and be bound by the TOU, or (2) use MNT on behalf of a business, thereby binding that business to the TOU, we grant you a limited, revocable, non-exclusive, non-assignable license to use MNT in compliance with the TOU; unlicensed use is unauthorized. You agree not to display, "frame," make derivative works, distribute, license, or sell, content from MNT, excluding postings you create. You grant us a perpetual, irrevocable, unlimited, worldwide, fully paid/sublicensable license to use, copy, display, distribute, and make derivative works from content you post.
+						</p>
+						<br><h5>USE.</h5>
+						<p class="fs--1 mb-0">
+								Unless licensed by us in a separate written or electronic agreement, you agree not to use or provide software (except our App and general purpose web browsers and email clients) or services that interact or interoperate with MNT, e.g. for downloading, uploading, creating/accessing/using an account, posting, flagging, emailing, searching, or mobile use. You agree not to copy/collect MNT content via robots, spiders, scripts, scrapers, crawlers, or any automated or manual equivalent (e.g., by hand). Misleading, unsolicited, and/or unlawful postings/communications/accounts are prohibited, as is buying or selling accounts. You agree not to post content that is prohibited by any of MNT's policies or rules referenced above ("Prohibited Content"). You agree not to abuse MNT's flagging or reporting processes. You agree not to collect MNT user information or interfere with MNT. You agree we may moderate MNT access/use in our sole discretion, e.g., by blocking, filtering, re-categorizing, re-ranking, deleting, delaying, holding, omitting, verifying, or terminating your access/license/account. You agree (1) not to bypass said moderation, (2) we are not liable for moderating or not moderating, and (3) nothing we say or do waives our right to moderate, or not. Unless licensed by us in a separate written or electronic agreement, you agree not to (i) rent, lease, sell, publish, distribute, license, sublicense, assign, transfer, or otherwise make available MNT or our application programming interface ("API"), (ii) copy, adapt, create derivative works of, decompile, reverse engineer, translate, localize, port or modify the App, the API, any website code, or any software used to provide MNT, (iii) combine or integrate MNT or the API with any software, technology, services, or materials not authorized by us, (iv) circumvent any functionality that controls access to or otherwise protects MNT or the API, or (v) remove or alter any copyright, trademark or other proprietary rights notices. You agree not to use MNT or the API in any manner or for any purpose that infringes, misappropriates, or otherwise violates any intellectual property right or other right of any person, or that violates any applicable law.
+						</p>
+						<br><h5>LIQUIDATED DAMAGES.</h5>
+						<p class="fs--1 mb-0">
+							You further agree that if you violate the TOU, or you encourage, support, benefit from, or induce others to do so, you will be jointly and severally liable to us for liquidated damages as follows for: (A) collecting/harvesting MNT users' information, including personal or identifying information - $1 per violation; (B) publishing/misusing personal or identifying information of a third party in connection with your use of MNT without that party's express written consent - $1,000 per violation; (C) misrepresenting your identity or affiliation to anyone in connection with your use of MNT - $1,000 per violation; (D) posting or attempting to post Prohibited Content - $4 per violation; (E) posting or attempting to post Prohibited Content in any paid section of MNT - the price per post applicable to that section of MNT; (F) sending an unauthorized/unsolicited email to an email address obtained from MNT - $25 per violation; (G) using MNT user information to make/send an unauthorized/unsolicited text message, call, or communication to a MNT user - $500 per text/call/communication; (H) creating a misleading or unlawful MNT account or buying/selling a MNT account - $4 per violation; (I) abusing or attempting to abuse MNT's flagging or reporting processes - $1 per violation; (J) distributing any software to facilitate violations of the USE Section - $1,000 per violation; (K) aggregating, displaying, framing, copying, duplicating, reproducing, making derivative works from, distributing, licensing, selling, or exploiting MNT content for any purpose without our express written consent - $3,000 for each day you engage in such violations; (L) requesting, viewing, or accessing more than 1,000 pages of MNT in any 24-hour period - $0.25 per page during the 24 hour period after the first 1,000 pages; (M) bypassing or attempting to bypass our moderation efforts - $4 per violation. You agree that these amounts are (1) a reasonable estimate of our damages (as actual damages are often difficult to calculate), (2) not a penalty, and (3) not otherwise limiting on our ability to recover under any legal theory or claim, including statutory damages and other equitable relief (e.g., for spam, we can elect between the above liquidated damages or statutory damages under the anti-spam statute). You further agree that repeated violations of the USE section will irreparably harm and entitle us to injunctive or equitable relief, in addition to monetary damages.
+						</p>
+						<br><h5>FEES.</h5>
+						<p class="fs--1 mb-0">
+								When you make a paid posting (MNT.com/about/help/posting_fees), you authorize us to charge your account. Any tax is additional. Fees are non-refundable, even for posts we remove, delay, omit, re-categorize, re-rank, or otherwise moderate. We may refuse any posting.
+						</p>
+						<br><h5>DISCLAIMER & LIABILITY.</h5>
+						<p class="fs--1 mb-0">
+								To the full extent permitted by law, My NICE Traders, Inc., and its officers, directors, employees, agents, licensors, affiliates, and successors in interest ("MNT Entities") (1) make no promises, warranties, or representations as to MNT, including its completeness, accuracy, availability, timeliness, propriety, security or reliability; (2) provide MNT on an "AS IS" and "AS AVAILABLE" basis and any risk of using MNT is assumed by you; (3) disclaim all warranties, express or implied, including as to accuracy, merchantability, fitness for a particular purpose, and non-infringement, and all warranties arising from course of dealing, usage, or trade practice; and (4) disclaim any liability or responsibility for acts, omissions, or conduct of you or any party in connection with MNT. MNT Entities are NOT liable for any direct, indirect, consequential, incidental, special, punitive, or other losses, including lost profits, revenues, data, goodwill, etc., arising from or related to MNT, and in no event shall such liability exceed $100 or the amount you paid us in the year preceding such loss. Some jurisdictions restrict or alter these disclaimers and limits, so some may not apply to you.
+						</p>
+						<p class="fs--1 mb-0">
+							<br><h5>CLAIMS & INDEMNITY.</h5> Any claim, cause of action, demand, or dispute arising from or related to MNT ("claims") will be governed by the internal laws of Virginia, without regard to conflict of law provisions, except to the extent governed by US federal law. Any claims will be exclusively resolved by courts in Richmond, VA (except we may seek preliminary or injunctive relief anywhere). You agree to (1) submit to the personal jurisdiction of courts in Richmond, VA; (2) indemnify and hold MNT Entities harmless from any claims, losses, liability, or expenses (including attorneys' fees) that arise from a third party and relate to your use of MNT; and (3) be liable and responsible for any claims we may have against your officers, directors, employees, agents, affiliates, or any other party, directly or indirectly, paid, directed or controlled by you, or acting for your benefit.
+						</p>
+						<br><h5>TRADEMARKS.</h5>
+						<p class="fs--1 mb-0">
+								My NICE Traders, "MNT" and the interconnecting arrows symbol logo are registered trademarks with the U.S. Patent and Trademark Office and with multiple trademark offices around the world.
+						</p>
+						<br><h5>MISC.</h5>
+						<p class="fs--1 mb-0">
+								Unless you have entered into a separate written or electronic agreement with us that expressly references the TOU, this is the exclusive and entire agreement between us and you, and supersedes all prior and contemporaneous understandings, agreements, representations, and warranties, both written and oral. Users complying with prior written licenses may access MNT thereby until authorization is terminated. Our actions or silence toward you or anyone else does not waive, modify, or limit the TOU or our ability to enforce it. The USE, LIQUIDATED DAMAGES, and CLAIMS & INDEMNITY sections survive termination of the TOU, and you will remain bound by those sections. If a TOU term is unenforceable, it shall be limited to the least extent possible and supplemented with a valid provision that best embodies the intent of the parties. The English version of the TOU controls over any translations. If you reasonably believe content infringes your IP rights, see MNT.com/about/dmca.
+
+
+						</p>
+					</div>
+				</div>
+			</div>
+
+
+
+
+
+			<!-- User Screens -->
+
+			<div id="registerPage" style="display:none;">
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-8 col-xxl-5 py-3 position-relative">
+						<img class="bg-auth-circle-shape" src="assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="assets/img/illustrations/shape-1.png" alt="" width="150">
+						<div class="card overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									<div class="col-md-5 text-center bg-card-gradient">
+										<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+											<div class="bg-holder bg-auth-card-shape" style="background-image:url(assets/img/illustrations/half-circle.png);">
+											</div>
+											<!--/.bg-holder-->
+
+											<div class="z-index-1 position-relative"><p class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder"  >NICE Traders</p>
+											<p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travellers</p>
+											</div>
+										</div>
+										<div class="mt-3 mb-4 mt-md-4 mb-md-5 light">
+											<p class="pt-3 text-white">Have an account?<br><a class="btn btn-outline-light mt-2 px-4" onclick="pages.go('loginPage','',false);return false;">Log In</a></p>
+										</div>
+									</div>
+									<div class="col-md-7 d-flex flex-center">
+										<div class="p-4 p-md-5 flex-grow-1">
+											<div id="errorMsg" style="color:red;"></div>
+											<h3>Register</h3>
+											<form id="registerForm" class="needs-validation" novalidate="novalidate" action="#">
+											<div class="mb-3">
+												<label class="form-label" for="register-fullName">Name</label>
+												<input class="form-control" type="text" id="register-fullName" required/>
+												<div class="invalid-feedback">You must add your name</div>
+											</div>
+											<div class="mb-3">
+												<label class="form-label" for="register-email">Email address</label>
+												<input class="form-control" type="email" id="register-email" pattern="^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$" required/>
+												<div class="invalid-feedback">You must add a valid email</div>
+											</div>
+											<div class="mb-3">
+												<label class="form-label" for="register-phone">Phone number</label>
+												<input class="form-control" type="phone" id="register-phone" required/>
+												<div class="invalid-feedback">You must add a phone</div>
+											</div>
+											<div class="row gx-2">
+												<div class="mb-3 col-sm-6">
+												<label class="form-label" for="register-password">Password</label>
+												<input class="form-control" type="password" id="register-password" autocomplete="none" data-wizard-validate-password="true" required/>
+												
+												<div class="invalid-feedback">Your passwords must match</div>
+											</div>
+											<div class="mb-3 col-sm-6">
+												<label class="form-label" for="register-confirm-password">Confirm Password</label>
+												<input class="form-control" type="password" id="register-confirm-password" autocomplete="none" data-wizard-validate-confirm-password="true" required/>
+												<div class="invalid-feedback">Your passwords must match</div>
+												</div>
+											</div>
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" id="register-checkbox"  required/>
+												<label class="form-label" for="register-checkbox">I accept the <a tabindex="-1" onclick="pages.go('termsPage','',false);return false;" >Terms and Conditions</a></label>
+												<div class="invalid-feedback">You must accept the terms and conditions</div>
+											</div>
+											<div class="mb-3">
+												<button class="btn btn-primary d-block w-100 mt-3" type="button" onclick="user.createAccount();return false;" >Register</button>
+											</div>
+											</form>
+											
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+			</div>
+
+
+
+
+
+			<div id="forgotPasswordPage" style="display: none;">
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-8 col-xxl-5 py-3 position-relative"><img class="bg-auth-circle-shape" src="assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="assets/img/illustrations/shape-1.png" alt="" width="150">
+						<div class="card overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									<div class="col-md-5 text-center bg-card-gradient">
+										<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+											<div class="bg-holder bg-auth-card-shape" style="background-image:url(assets/img/illustrations/half-circle.png);">
+											</div>
+											<!--/.bg-holder-->
+
+											<div class="z-index-1 position-relative"><p class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder"  >NICE Traders</p>
+											<p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travellers</p>
+											</div>
+
+										</div>
+										<div class="mb-4 mb-md-5 light">
+											<p class="pt-3 text-white">Have an account?<br><a class="btn btn-outline-light mt-2 px-4" onclick="pages.go('loginPage','',false);return false;" >Log In</a></p>
+											<p class="pt-3 text-white">Don't have an account?<br><a class="btn btn-outline-light mt-2 px-4" onclick="pages.go('registerPage','',false);return false;" >Get started!</a></p>
+											<p class="mb-0 mt-4 mt-md-5 fs--1 fw-semi-bold text-white opacity-75">Read our <a class="text-decoration-underline text-white"  onclick="pages.go('termsPage','',false);return false;" >Terms and Conditions</a></p>
+										</div>
+										
+									</div>
+									<div class="col-md-7 d-flex flex-center">
+										<div class="p-4 p-md-5 flex-grow-1">
+											<div id="errorMsg" style="color:red;"></div>
+											<div class="text-center text-md-start">
+												<h4 class="mb-0"> Forgot your password?</h4>
+												<p class="mb-4">Enter your email and we'll send you a reset link.</p>
+											</div>
+											<div class="row justify-content-center">
+												<div class="col-sm-8 col-md">
+													<form class="mb-3 needs-validation" id="forgotForm" novalidate="novalidate" action="#">
+														<input class="form-control" type="email" value="" id="forgot-email" required placeholder="Email address" />
+														<div class="mb-3">
+															<button class="btn btn-primary d-block w-100 mt-3" onclick="user.forgotPassword();return false;">Send Temporary Password</button>
+														</div>
+													</form>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+			</div>
+
+
+
+
+
+			<div id="loginPage" style="display:none;">
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-8 col-xxl-5 py-3 position-relative"><img class="bg-auth-circle-shape" src="assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="assets/img/illustrations/shape-1.png" alt="" width="150">
+						<div class="card overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									<div class="col-md-5 text-center bg-card-gradient">
+										<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+											<div class="bg-holder bg-auth-card-shape" style="background-image:url(assets/img/illustrations/half-circle.png);">
+											</div>
+											<!--/.bg-holder-->
+
+											<div class="z-index-1 position-relative"><p class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" >NICE Traders</p>
+											<p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travellers</p>
+											</div>
+										</div>
+										<div class="mt-3 mb-4 mt-md-4 mb-md-5 light">
+											<p class="pt-3 text-white">Don't have an account?<br><a class="btn btn-outline-light mt-2 px-4" onclick="pages.go('registerPage','',false);return false;">Get started!</a></p>
+															
+											<p class="mb-0 mt-4 mt-md-5 fs--1 fw-semi-bold text-white opacity-75">Read our <a class="text-decoration-underline text-white" onclick="pages.go('termsPage','',false);return false;" >Terms and Conditions</a></p>
+										</div>
+									</div>
+									<div class="col-md-7 d-flex flex-center">
+										<div class="p-4 p-md-5 flex-grow-1">
+											
+											<div class="row flex-between-center">
+												<div id="loginErrorMsg" style="color:red;"></div>
+												<div class="col-auto">
+													<h3>Account Login</h3>
+												</div>
+											</div>
+											<form class="row g-3 needs-validation" id="loginPage" novalidate="novalidate" action="#">
+											<div class="mb-3">
+												
+												<label class="form-label" for="email">Email</label>
+												<input class="form-control" id="login-email" type="email" autocomplete="email" value="" required />
+												<div class="invalid-feedback">You must add your email</div>
+												<div class="valid-feedback">Looks good!</div>
+
+											</div>
+											<div class="mb-3">
+												<div class="d-flex justify-content-between">
+													<label class="form-label" for="card-password">Password</label><a tabindex="-1" class="fs--1" onclick="pages.go('forgotPasswordPage','',false);return false;" >Forgot Password?</a>
+												</div>
+												<input class="form-control" id="login-password" autocomplete="current-password" onkeypress="app.onPressEnter(this, user.login)" type="password"required/>
+												<div class="invalid-feedback">You must add your password</div>
+												<div class="valid-feedback">Looks good!</div>
+											</div>
+											<!--<div class="form-check mb-0">
+												<input class="form-check-input" type="checkbox" id="card-checkbox" checked="checked" />
+												<label class="form-check-label" for="card-checkbox">Remember me</label>
+											</div>-->
+											<div class="mb-3">
+												<button class="btn btn-primary d-block w-100 mt-3" type="button" onclick="user.login();">Login</button>
+											</div>
+											</form>
+
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+
+
+
+			<div  id="loggedOut" style="display:none;">
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-8 col-xxl-5 py-3 position-relative"><img class="bg-auth-circle-shape" src="assets/img/illustrations/bg-shape.png" alt="" width="250"><img class="bg-auth-circle-shape-2" src="assets/img/illustrations/shape-1.png" alt="" width="150">
+						<div class="card overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									<div class="col-md-5 text-center bg-card-gradient">
+										<div class="position-relative p-4 pt-md-5 pb-md-7 light">
+											<div class="bg-holder bg-auth-card-shape" style="background-image:url(assets/img/illustrations/half-circle.png);">
+											</div>
+											<!--/.bg-holder-->
+
+											<div class="z-index-1 position-relative"><span class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" >NICE Traders</span>
+												<p class="opacity-75 text-white">With the power of NICE Traders, you can trade your foreign currencies with other travellers</p>
+											</div>
+										</div>
+										<div class="mt-3 mb-4 mt-md-4 mb-md-5 light">
+											<p class="mb-0 mt-4 mt-md-5 fs--1 fw-semi-bold text-white opacity-75">Read our <a class="text-decoration-underline text-white" onclick="pages.go('termsPage','',false);return false;" >Terms and Conditions</a></p>
+										</div>
+									</div>
+									<div class="col-md-7 d-flex flex-center">
+										<div class="p-4 p-md-5 flex-grow-1">
+											<div class="text-center"><img class="d-block mx-auto mb-4" src="assets/img/illustrations/rocket.png" alt="shield" width="70" />
+												<h3>See you again!</h3>
+												<p>Thanks for using NICE Traders! You are <br />now successfully signed out.</p><a class="btn btn-primary btn-sm mt-3" onclick="pages.go('loginPage','',false);return false;" ><span class="fas fa-chevron-left me-1" data-fa-transform="shrink-4 down-1"></span>Return to Login</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+			
+			</div>
+
+
+
+
+
+			<div id="changePassword" style="display:none;">
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-6 col-xxl-5 py-3 position-relative">
+						
+						<div class="card mb-3  overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									
+									<div class="p-4 p-md-5 flex-grow-2">
+										<div id="passwordMsg" style="color:red;"></div>
+										<h3>Change Password</h3>
+										<form id="changePasswordForm" class="needs-validation" novalidate="novalidate" action="#">
+										<div class="mb-3">
+											<label class="form-label" for="changePassword-oldPassword">Old Password</label>
+											<input class="form-control" type="password" autocomplete="none" id="changePassword-oldPassword" required/>
+											<div class="invalid-feedback">You must add your old Password</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="changePassword-newPassword1">New Password</label>
+											<input class="form-control" type="password" autocomplete="none" id="changePassword-newPassword1" required/>
+											<div class="invalid-feedback">You must add your New Password</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="changePassword-newPassword2">New Password (again)</label>
+											<input class="form-control" type="password" autocomplete="none" id="changePassword-newPassword2" required/>
+											<div class="invalid-feedback">You must add your New Password again</div>
+										</div>
+										
+										<div class="mb-3">
+											<button class="btn btn-primary d-block w-100 mt-3" type="button" onclick="user.changePassword();return false;">Save</button>
+										</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+			
+			</div>
+
+
+
+
+			<div  id="myProfile" style="display: none;">
+				
+				<div class="row min-vh-100 flex-center g-0">
+					<div class="col-lg-6 col-xxl-5 py-3 position-relative">				
+						<div class="card mb-3  overflow-hidden z-index-1">
+							<div class="card-body p-0">
+								<div class="row g-0 h-100">
+									
+									<div class="p-4 p-md-5 flex-grow-2">
+										<div id="myProfileMsg" style="color:red;"></div>
+										<h3>My Account</h3>
+										<form id="profileForm" class="needs-validation" novalidate="novalidate" action="#">
+										
+										<div class="mb-3">
+
+											
+
+											<label class="form-label" for="profile-fullName">First Name</label>
+											<input class="form-control" type="text" id="profile-firstName" required/>
+											<div class="invalid-feedback">You must add your First name</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="profile-fullName">Last Name</label>
+											<input class="form-control" type="text" id="profile-lastName" required/>
+											<div class="invalid-feedback">You must add your Last name</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="profile-email">Email address</label>
+											<input class="form-control" type="email" id="profile-email" pattern="^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$" required/>
+											<div class="invalid-feedback">You must add a valid email</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="profile-phone">Phone number</label>
+											<input class="form-control" type="phone" id="profile-phone" required/>
+											<div class="invalid-feedback">You must add a phone</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="profile-unit">Units</label>
+											<select class="form-control" id="profile-unit">
+												<option></option>
+												<option>Metric</option>
+												<option>Imperial</option>
+											</select>
+											<div class="invalid-feedback">You must add a phone</div>
+										</div>
+										<div class="mb-3">
+											<button class="btn btn-primary d-block w-100 mt-3" type="button" onclick="user.save();return false;">Save</button>
+										</div>
+										</form>
+										
+									</div>
+								</div>
+							</div>
+
+							
+							<div class="row g-0	">
+								
+								
+								<div class="col-xxl-6 px-xxl-2">
+									<div class="card h-lg-100">
+										<div class="card-header d-flex flex-between-center bg-light py-2">
+											<h6 class="mb-0">My Addresses</h6>
+											<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#address-modal" title="Add another address">Add</button>
+													
+										</div>
+										<table class="table table-hover">
+											<thead>
+												<tr>
+													<th scope="col">Edit</th>
+													<th scope="col">First</th>
+													<th scope="col">Delete</th>
+												</tr>
+											</thead>
+											<tbody id="profile-addresses">
+												<tr>
+													<td>
+														<button class="btn btn-light border-300 btn-sm me-1 text-600 shadow-none" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><img src="assets/img/pencil.svg" alt="" width="15" /></button>
+													</td>
+													<td>
+													</td>
+													<td>
+														<button class="btn btn-light border-300 btn-sm me-1 text-600 shadow-none" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><img src="assets/img/trash.svg" alt="" width="15" /></button>
+													</td>
+												</tr>
+												
+											</tbody>
+										</table>
+											
+									</div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+
+
+			<div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+					<div class="modal-content position-relative">
+						<div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+
+							<button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body p-0">
+							<div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+								<h4 class="mb-1" id="modalExampleDemoLabel">Address</h4>
+							</div>
+							<div class="p-4 pb-0">
+								<form id="addressForm" class="needs-validation" novalidate="novalidate" action="#">
+								
+								<input type="hidden" id="address-addressId" value=""><br>
+								<div class="mb-3">
+									<label class="form-label" for="address-address1">Address 1</label>
+									<input class="form-control" type="text" id="address-address1" required/>
+									<div class="invalid-feedback">You must add your Address</div>
+								</div>
+								
+								<div class="mb-3">
+									<label class="form-label" for="address-address2">Address 2</label>
+									<input class="form-control" type="text" id="address-address2" />
+								</div>
+								
+								<div class="mb-3">
+									<label class="form-label" for="address-city">City</label>
+									<input class="form-control" type="text" id="address-city" required/>
+									<div class="invalid-feedback">You must add your city</div>
+								</div>
+								
+								<div class="mb-3">
+									<label class="form-label" for="address-state">State</label>
+									<input class="form-control" type="text" id="address-state" required/>
+									<div class="invalid-feedback">You must add your State</div>
+								</div>
+								
+								<div class="mb-3">
+									<label class="form-label" for="address-zip">Zip Code</label>
+									<input class="form-control" type="text" id="address-zip" required/>
+									<div class="invalid-feedback">You must add your Zip</div>
+								</div>
+								
+								<div class="mb-3">
+									<label class="form-label" for="address-country">Country</label>
+									<input class="form-control" type="text" id="address-country" required/>
+									<div class="invalid-feedback">You must add your Country</div>
+								</div>
+								
+								</form>
+							</div>
+						</div>
+						<div class="modal-footer">
+
+							<button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+
+							<button class="btn btn-primary" type="button" onclick="addresses.saveAddress();return false;">Save</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+
+
+
+
+
+
+
+
+
+
+			<!-- Trade screens: -->
+
+
+
+			<div  id="dashboardPage" style="display: none;">
+				<div class="row g-0" >
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							
+							
+							<div class="bg-holder bg-card" style="background-image:url(assets/img/illustrations/corner-1.png);">
+								</div>
+								<!--/.bg-holder-->
+
+								<div class="card-body position-relative">
+									<h5 class="text-warning">Do you have extra foreign currency?</h5>
+									<p class="fs--1 mb-0">Don't pay high fees to exchange your foreign currency. Trade your currency with someone in your neighborhood</p>
+									<a class="btn btn-link fs--1 text-warning mt-4 mt-lg-3 ps-0" onclick="trades.resetActiveTrade({'type':'sell'});pages.go('tradePage1','');" >Trade now<span class="fas fa-chevron-right ms-1" data-fa-transform="shrink-4 down-1"></span></a>
+								</div>
+						</div>
+
+						
+					</div>
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							<div class="bg-holder bg-card" style="background-image:url(assets/img/illustrations/corner-3.png);">
+							</div>
+							<!--/.bg-holder-->
+
+							<div class="card-body position-relative">
+								<h5 class="text-info">Do you need foreign currency?</h5>
+								<p class="fs--1 mb-0">Don't pay high fees! Find a neighbor you can trade with!</p>
+								<a class="btn btn-link fs--1 text-info mt-4 mt-lg-3 ps-0" onclick="trades.resetActiveTrade({'type':'buy'});pages.go('tradePage1','');" >Trade now<span class="fas fa-chevron-right ms-1" data-fa-transform="shrink-4 down-1"></span></a>
+							</div>
+							
+						</div>
+
+
+						
+					</div>
+				</div>
+
+				<div class="row g-0">
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							<div class="table-responsive scrollbar">
+								<table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200">
+									<thead class="bg-light">
+									<tr class="text-900">
+										<th>Currencies I have</th>
+										<th></th>
+										<th>Currency I want</th>
+										
+										
+									</tr>
+									</thead>
+									<tbody id="haveCurrencyTrades">
+									
+									
+
+
+									
+									</tbody>
+								</table>
+							</div>
+							
+						</div>
+
+
+						
+					</div>
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							<div class="table-responsive scrollbar">
+								<table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200">
+									<thead class="bg-light">
+									<tr class="text-900">
+										<th>Currencies I want</th>
+										<th></th>
+										<th>Will pay with</th>
+										
+									</tr>
+									</thead>
+									<tbody  id="wantCurrencyTrades">
+									
+									</tbody>
+								</table>
+								</div>
+							
+						</div>
+
+					</div>
+				</div>
+
+
+				<div class="row g-0">
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							<div class="card-header">
+								Frequently Asked Questions
+							</div>
+							<div class="accordion" id="accordionExample">
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading1">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+										Why do I want this?
+									</button>
+									</h2>
+									<div id="collapse1" class="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>When you travel overseas you will mostly pay with your credit card. But cash is always handy for buying rides on public transit, tips, paying street vendors for food, and craft items and small incidentals.  Getting cash at exchange kiosks is surprisingly expensive. Even ATMs charge a fee, and you have to wait until you get to your destination country hoping find one.  Selling back any currency you still have is not only costly again, but it is also sometimes impossible to do.</p>
+
+										<p>From as far back at 2013, USA Today reported:</p>
+
+										<p>“Indeed, according to a recent poll of 2,105 American vacationers by www.forexcurrency.us, respondents brought back an average of $32 in unspent foreign funds from their international trips — and 83% conceded they never exchanged the money back to U.S. dollars. (When asked why, 54% said they just didn't get around to it and 35% said there was "no point." And while 11% said they were saving the loot for their next trip, a quarter of those said it would probably be left behind.)’</p>
+									</div>
+									</div>
+								</div>
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading2">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+										HOW does it work?
+									</button>
+									</h2>
+									<div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>You tell us what currency you want to buy, what currency you plan to pay with, and how much you want. Your request goes into our worldwide database, and we identify reciprocal NICE Traders in your neighborhood.  When you find one you want to trade with, we double check to confirm they still want to trade and are willing to trade with you.  When you have both committed to trade, you each pay us one dollar, we put you in touch with each other via mutually agreeable methods, and you arrange to meet and exchange your currency.</p>
+									</div>
+									</div>
+								</div>
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading3">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+										HOW is the exchange rate determined?
+									</button>
+									</h2>
+									<div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>This is another exciting part!  The market rate, also known as the interbank rate, is the exchange rate at which banks borrow from and lend to each other. Usually, the market rate is different from the customer rate. The customer rate is the market rate plus the profit margin of the financial company you are dealing with.  In other words, you pay more for currency than it is worth.  Your home bank, AAA, a money exchanger at the airport, etc will tack on 5-7%.  And some money changers (including ATMs) will charge an additional fee.</p>
+										<p>NICE Traders is different.  The exchange rate you pay through us is the exact exchange rate giant international banks use with each other; i.e. the market rate.  There is no premium paid or charged.  The rate you pay when you buy your currency is the same rate you pay when you sell it to another NICE Trader after you return home.  Or, when NICE Traders goes international, you can sell it to another person before you even come home.  Nothing is skimmed off the top.  We charge a $1 fee (see “How much does it cost?” question below).  Of course if you’ve held currency for a long time, the market rate may be different from when you bought, it, but the difference is due to international conditions, not NICE Traders.</p>
+									</div>
+									</div>
+								</div>
+
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading4">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+										HOW much does it cost?
+									</button>
+									</h2>
+									<div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<ol>
+											<li>NICE Traders is free to sign up.</li>
+											<li>NICE Traders is free to search.</li>
+											<li>NICE Traders is free to keep your search active for a full year. After that if you want to continue with the search, it’s free to continue.</li>
+											<li>NICE Traders is free to do multiple searches and keep multiple searches active. For example, if you have traveled to many countries and have numerous stashes of leftover currency, you can put them all up for sale for free.</li>
+											<li>When you actually agree to make a trade, it costs you one dollar.</li>
+											
+											
+
+
+										</ol>	
+										
+									</div>
+									</div>
+								</div>
+
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading5">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+										WHAT currencies and how much can I sell?
+									</button>
+									</h2>
+									<div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>You are allowed to sell any currency at all.  Whether you can depends on whether there is a NICE Trader nearby who wants to buy it. Just because you have currency from a country not frequently traveled does not mean it won’t sell.  Plus, it doesn’t cost you anything to add your currency to the list of those in our database.  People may even view your less common money to be a cool gift for a grandchild, niece, or nephew.  </p>
+										<p>Large amounts of cash are restricted by the U.S. Treasury.  To keep within government guidelines, NICE Traders restricts trades to less than $1000/day.</p>
+										<p>If you have more than $1000, simply create multiple trades.</p>
+									</div>
+									</div>
+								</div>
+
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading6">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
+										I just pay my final hotel bill with whatever I have left.
+									</button>
+									</h2>
+									<div id="collapse6" class="accordion-collapse collapse" aria-labelledby="heading6" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>That sounds like a good idea, but the hotel will give you a “customer” rate for your money, not the “market” rate. You’ll forfeit 5-7% (or more) to do it.</p>
+									</div>
+									</div>
+								</div>
+
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading7">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7" aria-expanded="false" aria-controls="collapse7">
+										I donate all my excess currency to the airline charity.
+									</button>
+									</h2>
+									<div id="collapse7" class="accordion-collapse collapse" aria-labelledby="heading7" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>We certainly encourage charitable donations, and airlines.</p>
+									</div>
+									</div>
+								</div>
+								</div>
+							
+						</div>
+
+
+						
+					</div>
+					<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+						<div class="card h-md-100">
+							<div class="card">
+								<video id="player" playsinline controls data-poster="/path/to/poster.jpg">
+									<source src="assets/videos/MNTv4.mp4" type="video/mp4" />
+									
+								</video>
+							</div>
+							
+						</div>
+
+
+						
+					</div>
+				</div>
+			</div>
+
+
+
+			<div id="tradePage1" style="display: none;">
+				<div class="row justify-content-center">
+					<div class="col-sm-10 col-lg-10 col-xxl-5">
+				
+						
+						<div class="card theme-wizard mb-5 ">
+							<div class="card-header bg-light pt-3 pb-2">
+								<ul class="nav justify-content-between nav-wizard">
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link active fw-semi-bold" href="#bootstrap-sellWizard-tab1" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-question"></span></span></span><span class="d-none d-md-block mt-1 fs--1">How it Works</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab2" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-dollar-sign"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Currency</span></a></li>
+									<!-- <li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab4" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-globe-americas"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Location</span></a></li> -->
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab5" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-search"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Find Match</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab6" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-handshake"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Trade</span></a></li>
+								</ul>
+							</div>
+							<div class="card-body py-4">
+								<div class="tab-content">
+									<div class="px-sm-3 px-md-5">
+										<h4>How this works</h4>
+										<p>
+											If you have currency from a previous trip overseas use NICE traders to 
+											find a neighbor who would like to buy the currency from you. By doing this
+											you won't have to pay an exorbitant fee to a currency trading company.
+
+
+										</p>
+										<p>Our fee is reasonable! We only charge $1 USD to match you with a neighbor.
+											It costs nothing to setup your trade, we only charge you when you and your
+											neighbor agree to the terms.
+
+
+										</p>
+										<h4>Get started now!</h4>
+									</div>
+									
+								</div>
+							</div>
+							<div class="card-footer bg-light">
+								<div class="px-sm-3 px-md-5">
+									<ul class="pager list-inline mb-0">
+									<li class="previous">
+										<!--<button class="btn btn-link ps-0" type="button" onclick="trades.previousTab();"><span class="fas fa-chevron-left me-2" data-fa-transform="shrink-3"></span>Prev</button>-->
+									</li>
+									<li class="next">
+										<button class="btn btn-primary px-5 px-sm-6" type="button" onclick="trades.saveActiveTrade('tradePage1','tradePage2');">Next<span class="fas fa-chevron-right ms-2" data-fa-transform="shrink-3"> </span></button>
+									</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+
+			<div id="tradePage2" style="display: none;">
+			
+				<div class="row justify-content-center">
+					<div class="col-sm-10 col-lg-10 col-xxl-5">
+				
+						
+						<div class="card theme-wizard mb-5 " id="wizardSell" >
+							<div class="card-header bg-light pt-3 pb-2">
+								<ul class="nav justify-content-between nav-wizard">
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link done fw-semi-bold" href="#bootstrap-sellWizard-tab1" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-question"></span></span></span><span class="d-none d-md-block mt-1 fs--1">How it Works</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link active fw-semi-bold" href="#bootstrap-sellWizard-tab2" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-dollar-sign"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Currency</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab5" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-search"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Find Match</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab6" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-handshake"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Trade</span></a></li>
+								</ul>
+							</div>
+							<form id="currencyForm1" class="needs-validation" novalidate="novalidate" action="#">
+									
+								<div class="card-body py-4">
+									<div class="px-sm-3 px-md-5" >
+										<h4>Currency</h4>
+										<p>Do you have extra foreign currency from a recent trip? Choose the type and amount. 
+										</p>
+										<input type="hidden" value="" id="currency-tradeSearchId" value="">
+												
+										<div class="mb-3">
+											<label class="form-label" for="currency-currencyHave">Currency I have:</label>
+											<br>
+											<select class="js-example-basic-single form-control" style="width:300px;" onchange="trades.validateFormElement(this);" required="true" id="currency-currencyHave" ></select>
+											
+											<div class="invalid-feedback">You must choose your currency</div>
+										</div>
+										<div class="mb-3" id="amountIHaveDiv">
+											<label class="form-label" for="currency-amountHave">Amount I have:</label>
+											<input class="form-control" type="text" value="" id="currency-amountHave" onkeyup="trades.validateFormElement(this);" ></td>
+											
+											<div class="invalid-feedback">You must add the amount you have</div>
+										</div>
+										<div class="mb-3">
+											<label class="form-label" for="currency-currencyWant">Currency I want:</label>
+											<br class="clearfix">
+											<select class="form-control js-example-basic-single" style="width:300px;" onchange="trades.validateFormElement(this);trades.convertValue();"  required="true" id="currency-currencyWant" ></select>
+											
+											<div class="invalid-feedback">You must choose your currency</div>
+										</div>
+										<div id="convertDiv" style="display: none;" class="mb-3">
+											<label class="form-label" for="currencyWant">Value of <span id="currency-wantType"></span> in <span id="currency-haveType"> is:</span> <span id="currency-convertedValue"></span></label>
+											
+										</div>
+										
+									</div>
+									<div class="px-sm-3 px-md-5" >
+										<h4>Location</h4>
+											<p>Choose one of your addresses below and we will search for neighbors who
+												are interested in trading with you. This location will not be shared with anyone
+											</p>
+												
+											<div class="mb-3">
+												<label class="form-label" for="currency-addressId">Choose an address for a search:</label>
+												<div id="currency-addresses"></div>
+												<input type="hidden" id="currency-addressId">
+												<input type="hidden" id="currency-lat" value="">
+												<input type="hidden" id="currency-lng" value="">
+												<div class="invalid-feedback">You must choose a starting address</div>
+											</div>
+											<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#address-modal" title="Add another address">Add</button>
+											
+											<br>
+											<div class="mb-3">
+												<label class="form-label" for="currency-distance">Distance willing to travel (<span id="myunit"></span>):</label>
+												<input class="form-control" type="number" value="10" onchange="maps.changeRadius();" onkeyup="trades.validateFormElement(this,maps.changeRadius());" onchange="trades.validateFormElement(this);"  id="currency-distance" required="true" ></td>
+												
+												<div class="invalid-feedback">You must choose your search radius</div>
+											</div>
+											
+											<div id="currency-searchMap" class="z-depth-1-half map-container" style="height: 500px"></div>
+											
+									</div>
+								</div>
+							</form>
+							<div class="card-footer bg-light">
+								<div class="px-sm-3 px-md-5">
+									<ul class="pager list-inline mb-0">
+									<li class="previous">
+										<button class="btn btn-link ps-0" type="button" onclick="pages.go('tradePage1','tradeSearchId='+app.url.tradeSearchId);"><span class="fas fa-chevron-left me-2" data-fa-transform="shrink-3"></span>Prev</button>
+									</li>
+									<li class="next">
+										<button class="btn btn-primary px-5 px-sm-6" type="button" onclick="trades.saveActiveTrade('tradePage2','tradePage3');">Next<span class="fas fa-chevron-right ms-2" data-fa-transform="shrink-3"> </span></button>
+									</li>
+									
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>		
+
+			<div id="tradePage3" style="display: none;">
+				<div class="row justify-content-center">
+					<div class="col-sm-10 col-lg-10 col-xxl-5">
+				
+						
+						<div class="card theme-wizard mb-5 ">
+							<div class="card-header bg-light pt-3 pb-2">
+								<ul class="nav justify-content-between nav-wizard">
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link done fw-semi-bold" href="#bootstrap-sellWizard-tab1" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-question"></span></span></span><span class="d-none d-md-block mt-1 fs--1">How it Works</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link done fw-semi-bold" href="#bootstrap-sellWizard-tab2" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-dollar-sign"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Currency</span></a></li>
+									<!-- <li class="nav-item"><a style="pointer-events: none;" class="nav-link done fw-semi-bold" href="#bootstrap-sellWizard-tab4" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-globe-americas"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Location</span></a></li> -->
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link active fw-semi-bold" href="#bootstrap-sellWizard-tab5" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-search"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Find Match</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab6" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-handshake"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Trade</span></a></li>
+								</ul>
+							</div>
+							<div class="card-body py-4">
+								<div class="px-sm-3 px-md-5 fw-semi-bold"  id="detail">
+									<div id="editSellDeleteBtns" style="float:right;display:none;">
+										<button class="btn btn-light border-300 btn-sm me-1 text-600 shadow-none" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="if (window.confirm('Are you ready to delete this?')){trades.deleteTradeSearch();};return false;"><img src="assets/img/trash.svg" alt="" width="15" /></button>
+									</div>
+									<div class="d-flex mb-1">
+										<div class="d-flex">
+											Currency I have:
+											<span id="sellTradeHave"></span>
+										</div>
+										
+									</div>
+									<div class="d-flex mb-1">
+										<div class="d-flex">
+											Currency I want:
+											<span id="sellTradeWant"></span>
+										</div>
+									</div>
+									
+									<div class="d-flex mb-1">
+										<div class="d-flex">
+											Amount:
+											<span id="sellAmount"></span>
+										</div>
+									</div>
+									<div class="d-flex mb-1">
+										<div class="d-flex">
+											Location:
+											<span id="sellLocation"></span>
+										</div>
+									</div>
+									<hr>
+								</div>
+								<div class="px-sm-3 px-md-5"  id="foundMatches">
+									
+									
+
+
+
+									<div id="Msg" style="color:red;"></div>
+									<h4 class="mb-1">Find a Match</h4>
+									<div class="table-responsive scrollbar">
+										<table class="table table-hover table-dashboard mb-0 table-borderless fs--1 border-200">
+											<thead class="bg-light">
+											<tr class="text-900">
+												<th></th>
+												<th>Type</th>
+												<th>First Name</th>
+												<th>Distance</th>
+												
+											</tr>
+											</thead>
+											<tbody id="sellTradeMatchTable">
+											
+											
+
+
+											
+											</tbody>
+										</table>
+									</div>
+									
+								</div>
+
+								<div class="px-sm-3 px-md-5"  style="text-align: center;display:none;" id="noMatches">
+									<b>No matches were found.</b>
+									<p>We will contact you when a match for this currency is in your area</p>
+									<button class="btn btn-primary px-5 px-sm-6" type="button" onclick="pages.go('dashboardPage');">Back To Dashboard</button>
+									
+								</div>
+							</div>
+							<div class="card-footer bg-light">
+								<div class="px-sm-3 px-md-5">
+									<ul class="pager list-inline mb-0">
+									<li class="previous">
+										<button class="btn btn-link ps-0" type="button" onclick="pages.go('tradePage2','tradeSearchId='+app.url.tradeSearchId);"><span class="fas fa-chevron-left me-2" data-fa-transform="shrink-3"></span>Prev</button>
+									</li>
+									<li class="next" >
+										<button class="btn btn-primary px-5 px-sm-6" id="page3NextButton" type="button" onclick="pages.go('tradePage4','tradeSearchId='+trades.activeTrade.tradeSearchId,false);">Next<span class="fas fa-chevron-right ms-2" data-fa-transform="shrink-3"> </span></button>
+									</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>	
+
+			<div id="tradePage4" style="display: none;">
+				<div class="row justify-content-center">
+					<div class="col-sm-10 col-lg-10 col-xxl-5">
+				
+						
+						<div class="card theme-wizard mb-5 ">
+							<div class="card-header bg-light pt-3 pb-2">
+								<ul class="nav justify-content-between nav-wizard">
+									<li class="nav-item"><a style="pointer-events: none;" class="done nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab1" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-question"></span></span></span><span class="d-none d-md-block mt-1 fs--1">How it Works</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="done nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab2" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-dollar-sign"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Currency</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="done nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab5" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-search"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Find Match</span></a></li>
+									<li class="nav-item"><a style="pointer-events: none;" class="active nav-link fw-semi-bold" href="#bootstrap-sellWizard-tab6" data-bs-toggle="tab" data-wizard-step="data-wizard-step"><span class="nav-item-circle-parent"><span class="nav-item-circle"><span class="fas fa-handshake"></span></span></span><span class="d-none d-md-block mt-1 fs--1">Trade</span></a></li>
+								</ul>
+							</div>
+							<div class="card-body py-4">
+								<div class="px-sm-3 px-md-5">
+									<div class="row g-0">
+										<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+											<div class="card h-md-100">
+												<div class="card-body">
+													<div class="row h-100 justify-content-between g-0">
+														<div class="col-5 col-sm-6 col-xxl pe-2">
+															<b>Seller:</b>
+															<div id="scheduleSellName"></div>
+															
+															<div id="scheduleSellBring"></div>
+														</div>
+													</div>
+												</div>
+												
+											</div>
+
+
+											
+										</div>
+										<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+											<div class="card h-md-100">
+												<div class="card-body">
+													<div class="row h-100 justify-content-between g-0">
+														<div class="col-5 col-sm-6 col-xxl pe-2">
+															<b>Buyer:</b>
+															<div id="scheduleBuyName"></div>
+															
+															<div id="scheduleBuyBring"></div>
+
+														</div>
+													</div>
+												</div>
+												
+											</div>
+
+
+											
+										</div>
+									</div>
+
+
+
+									<div class="row g-0">
+										<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+											<div class="card h-md-100">
+												<div class="card-body">
+													<div class="row mh-100 justify-content-between g-0">
+														<b>Messenger:</b><br>
+														<div id="messages" style="max-height: 350px; overflow-y: scroll;"></div>
+														<input class="form-control" type="text" id="message"/><input  type="button" class="btn btn-primary" onclick="messages.sendMessage()" value="Send"> 
+														
+															
+															
+													</div>
+												</div>
+												
+											</div>
+
+
+											
+										</div>
+										<div class="col-lg-6 col-xl-6 pe-lg-2 mb-3">
+											<div class="card h-md-100">
+												<div class="card-body" id="dateSuggestDiv">
+													<div class="row">
+														<div class="col-12">
+															<form id="suggestDateForm"  class="needs-validation" novalidate="novalidate" action="#">
+															<div class="form-group">
+																<label class="form-label" for="dateSuggest">Date to meet</label>
+																<input data-provide="datepicker" class="form-control" id="dateSuggest" required=true type="date" onchange="trades.checkFuture();"></input>
+																<div class="invalid-feedback">Date must be in the future</div>
+															</div>
+															<div class="form-group">
+																<label class="form-label" for="timeSuggest">Time to meet</label>
+																<input data-provide="timepicker" class="form-control" id="timeSuggest" required=true type="time" onchange="trades.checkFuture();"></input>
+																<div class="invalid-feedback">Time must be in the future</div>
+															</div>
+															<input type="button" class="btn btn-primary"  value="Suggest this Date/Time" onclick="trades.suggestTradeMatchDate()">
+															</form>
+															<div id="suggestedDateDiv">
+																
+																<div class="row mh-100 justify-content-between g-0">
+																	Suggested Date/Time to meet: 
+																	<br>
+																	<span id="suggestedDate"></span>
+																</div>
+															</div>
+														</div>
+														<div class="col-12">
+															<!--<span id="sellerDateApproveName"></span> <input type="checkbox" class="form-check-input" id="sellerDateApprove"><BR>
+															<span id="buyerDateApproveName"></span> <input type="checkbox" class="form-check-input" id="buyerDateApprove">-->
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-12">
+															<b>Where to meet:</b>
+															<select id="meetType" onchange="changeLocationType()">
+																<option value="">[CUSTOM SEARCH]</option>
+																<option>accounting</option>
+																<option>airport</option>
+																<option>amusement_park</option>
+																<option>aquarium</option>
+																<option>art_gallery</option>
+																<option>atm</option>
+																<option>bakery</option>
+																<option>bank</option>
+																<option>bar</option>
+																<option>beauty_salon</option>
+																<option>bicycle_store</option>
+																<option>book_store</option>
+																<option>bowling_alley</option>
+																<option>bus_station</option>
+																<option>cafe</option>
+																<option>campground</option>
+																<option>car_dealer</option>
+																<option>car_rental</option>
+																<option>car_repair</option>
+																<option>car_wash</option>
+																<option>casino</option>
+																<option>cemetery</option>
+																<option>church</option>
+																<option>city_hall</option>
+																<option>clothing_store</option>
+																<option>convenience_store</option>
+																<option>courthouse</option>
+																<option>dentist</option>
+																<option>department_store</option>
+																<option>doctor</option>
+																<option>drugstore</option>
+																<option>electrician</option>
+																<option>electronics_store</option>
+																<option>embassy</option>
+																<option>fire_station</option>
+																<option>florist</option>
+																<option>funeral_home</option>
+																<option>furniture_store</option>
+																<option>gas_station</option>
+																<option>gym</option>
+																<option>hair_care</option>
+																<option>hardware_store</option>
+																<option>hindu_temple</option>
+																<option>home_goods_store</option>
+																<option>hospital</option>
+																<option>insurance_agency</option>
+																<option>jewelry_store</option>
+																<option>laundry</option>
+																<option>lawyer</option>
+																<option>library</option>
+																<option>light_rail_station</option>
+																<option>liquor_store</option>
+																<option>local_government_office</option>
+																<option>locksmith</option>
+																<option>lodging</option>
+																<option>meal_delivery</option>
+																<option>meal_takeaway</option>
+																<option>mosque</option>
+																<option>movie_rental</option>
+																<option>movie_theater</option>
+																<option>moving_company</option>
+																<option>museum</option>
+																<option>night_club</option>
+																<option>painter</option>
+																<option>park</option>
+																<option>parking</option>
+																<option>pet_store</option>
+																<option>pharmacy</option>
+																<option>physiotherapist</option>
+																<option>plumber</option>
+																<option>police</option>
+																<option>post_office</option>
+																<option>primary_school</option>
+																<option>real_estate_agency</option>
+																<option>restaurant</option>
+																<option>roofing_contractor</option>
+																<option>rv_park</option>
+																<option>school</option>
+																<option>secondary_school</option>
+																<option>shoe_store</option>
+																<option>shopping_mall</option>
+																<option>spa</option>
+																<option>stadium</option>
+																<option>storage</option>
+																<option>store</option>
+																<option>subway_station</option>
+																<option>supermarket</option>
+																<option>synagogue</option>
+																<option>taxi_stand</option>
+																<option>tourist_attraction</option>
+																<option>train_station</option>
+																<option>transit_station</option>
+																<option>travel_agency</option>
+																<option>university</option>
+																<option>veterinary_care</option>
+																<option>zoo</option>
+															</select>
+															
+															<div id="meetupSearchMap" class="z-depth-1-half map-container" style="height: 500px"></div>
+														</div>
+													</div>
+												</div>
+												
+											</div>
+
+
+											
+										</div>
+									</div>
+								</div>
+									
+							</div>
+							<div class="card-footer bg-light">
+								<div class="px-sm-3 px-md-5">
+									<ul class="pager list-inline mb-0">
+									<li class="previous">
+										<button class="btn btn-link ps-0" type="button" onclick="pages.go('tradePage3','tradeSearchId='+app.url.tradeSearchId);"><span class="fas fa-chevron-left me-2" data-fa-transform="shrink-3"></span>Prev</button>
+									</li>
+									<li class="next">
+										<!--<button class="btn btn-primary px-5 px-sm-6" type="button" onclick="pages.go('tradePage2');">Next<span class="fas fa-chevron-right ms-2" data-fa-transform="shrink-3"> </span></button>-->
+									</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+			
+			
+			
+
+
+			
+
+
+
+
+
+
+
+
+			
+
+
+
+
+			
+
+			<div id="error" style="display:none;">
+				
+				<div class="card mb-3">
+					<div class="card-body">
+						<h5>Uh Oh!</h5>
+						
+						<p class="fs--1 mb-0">
+								Sorry, we ran into an error. Try reloading the page.
+
+						</p>
+					</div>
+				</div>
+			</div>
+			
+
+
+			<div class="modal fade" id="payment-modal" tabindex="-1" role="dialog" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+					<div class="modal-content position-relative">
+						<div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+							<button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body p-0">
+							<div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+								<h4 class="mb-1" id="modalExampleDemoLabel">Payment</h4>
+							</div>
+							<div class="p-4 pb-0">
+								<p class="text-center">To complete this transaction will cost $1.</p>
+								<div id="smart-button-container">
+									<div style="text-align: center;">
+										<div id="paypal-button-container"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+</main>
+
+
+
+
+<script src="assets/vendors/popper/popper.min.js"></script>
+<script src="assets/vendors/bootstrap/bootstrap.min.js"></script>
+<script src="assets/vendors/fontawesome/all.min.js"></script>
+
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBj995OwcIWsbsZadzWt0ekBpLOvB5s6ZE&callback=app.pageLoaded">
+	
+    </script>
+
+	
+
+</body>
+
+</html>

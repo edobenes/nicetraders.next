@@ -1,0 +1,8 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/mynibsde/nicetraders"
+PassengerBaseURI "/q"
+PassengerNodejs "/home/mynibsde/nodevenv/nicetraders/12/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+PassengerAppLogFile "/home/mynibsde/nicetraders/err.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
