@@ -59,10 +59,11 @@ try {
     page.waitForNavigation({ waitUntil: "networkidle0", timeout: 10000 }),
     page.click("#registerForm button[type='submit'], #registerForm button"),
   ]);
-  await page.screenshot({ path: path.join(artifactDir, "auth_register_dashboard.png"), fullPage: true });
   if (!page.url().includes("/dashboard")) {
     throw new Error(`Expected dashboard after registration, got ${page.url()}; logs=${JSON.stringify(browserLogs)}`);
   }
+  await page.waitForSelector(".card-content h5", { timeout: 10000 });
+  await page.screenshot({ path: path.join(artifactDir, "auth_register_dashboard.png"), fullPage: true });
   const createResponse = await legacyCommand({
     object: "users",
     method: "verifyBySessionId",
@@ -82,10 +83,11 @@ try {
     page.waitForNavigation({ waitUntil: "networkidle0", timeout: 10000 }),
     page.click("#loginForm button"),
   ]);
-  await page.screenshot({ path: path.join(artifactDir, "auth_login_dashboard.png"), fullPage: true });
   if (!page.url().includes("/dashboard")) {
     throw new Error(`Expected dashboard after login, got ${page.url()}; logs=${JSON.stringify(browserLogs)}`);
   }
+  await page.waitForSelector(".card-content h5", { timeout: 10000 });
+  await page.screenshot({ path: path.join(artifactDir, "auth_login_dashboard.png"), fullPage: true });
   const loginResponse = await legacyCommand({
     object: "users",
     method: "verifyBySessionId",
