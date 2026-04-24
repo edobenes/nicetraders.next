@@ -26,7 +26,7 @@ await mkdir(artifactDir, { recursive: true });
 
 const browser = await puppeteer.launch({
   executablePath: chromePath,
-  headless: "new",
+  headless: process.env.HEADLESS === "false" ? false : "new",
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 
