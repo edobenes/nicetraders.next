@@ -1,0 +1,30 @@
+{
+  "name": "nicetraders-next",
+  "version": "1.0.0",
+  "description": "Static NICE Traders frontend with a local development authentication API.",
+  "type": "module",
+  "main": "backend/server.mjs",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "node backend/server.mjs",
+    "start": "node backend/server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edobenes/nicetraders.next.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/edobenes/nicetraders.next/issues"
+  },
+  "homepage": "https://github.com/edobenes/nicetraders.next#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
