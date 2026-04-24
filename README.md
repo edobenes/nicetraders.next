@@ -30,6 +30,12 @@ User records are stored in `data/dev-db.json`, which is intentionally gitignored
 npm test
 ```
 
+To run a browser-level registration/login check against a running dev server:
+
+```sh
+npm run test:e2e
+```
+
 ## Backend design
 
 The local backend is an Express API using Node built-ins for persistence and password hashing:

@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "node backend/server.mjs",
     "start": "node backend/server.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "test:e2e": "node test/e2e-auth.mjs"
   },
   "repository": {
     "type": "git",
@@ -26,5 +27,8 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.42.0"
   }
 }
