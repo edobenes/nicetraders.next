@@ -95,7 +95,7 @@
 
 		connection.onclose = function() {
 			console.error('disconnected');
-			setTimeout(connectToWebSockets,10000);
+			setTimeout(app.connectToWebSockets,10000);
 		};
 
 		connection.onerror = function(error) {
