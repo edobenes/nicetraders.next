@@ -1,13 +1,20 @@
-import { mkdir } from "node:fs/promises";
+import { mkdtemp, mkdir, rm } from "node:fs/promises";
+import { createServer as createNetServer } from "node:net";
+import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import puppeteer from "puppeteer-core";
 
-const baseUrl = process.env.E2E_BASE_URL || "http://127.0.0.1:8080";
+const shouldStartServer = !process.env.E2E_BASE_URL;
+let port = Number(process.env.E2E_PORT || 0);
+let baseUrl = process.env.E2E_BASE_URL || "";
 const chromePath = process.env.CHROME_BIN || "/usr/local/bin/google-chrome";
 const artifactDir = process.env.E2E_ARTIFACT_DIR || "/opt/cursor/artifacts";
 const stamp = Date.now();
 const email = `cursor-e2e-${stamp}@example.com`;
 const password = "TestPass123!";
+let serverProcess;
+let tempDir;
 
 async function legacyCommand(command) {
   const response = await fetch(`${baseUrl}/q?command=${encodeURIComponent(JSON.stringify(command))}`);
@@ -23,6 +30,49 @@ async function sessionIdFromCookies(page) {
 }
 
 await mkdir(artifactDir, { recursive: true });
+
+async function getFreePort() {
+  if (port) return port;
+  return await new Promise((resolve, reject) => {
+    const server = createNetServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      server.close(() => resolve(address.port));
+    });
+  });
+}
+
+async function waitForHealth() {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(`${baseUrl}/health`);
+      if (response.ok) return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+  throw new Error(`Timed out waiting for ${baseUrl}/health`);
+}
+
+if (shouldStartServer) {
+  port = await getFreePort();
+  baseUrl = `http://127.0.0.1:${port}`;
+  tempDir = await mkdtemp(path.join(tmpdir(), "nicetraders-e2e-"));
+  serverProcess = spawn(process.execPath, ["backend/server.mjs"], {
+    cwd: path.resolve(import.meta.dirname, ".."),
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      PORT: String(port),
+      DATA_FILE: path.join(tempDir, "dev-db.json"),
+    },
+  });
+  serverProcess.stdout.on("data", (chunk) => process.stdout.write(`[dev-server] ${chunk}`));
+  serverProcess.stderr.on("data", (chunk) => process.stderr.write(`[dev-server] ${chunk}`));
+  await waitForHealth();
+}
 
 const browser = await puppeteer.launch({
   executablePath: chromePath,
@@ -106,4 +156,11 @@ try {
   }, null, 2));
 } finally {
   await browser.close();
+  if (serverProcess) {
+    serverProcess.kill("SIGTERM");
+    await new Promise((resolve) => serverProcess.once("exit", resolve));
+  }
+  if (tempDir) {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 }

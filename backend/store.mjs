@@ -24,13 +24,14 @@ export class JsonStore {
   }
 
   async update(mutator) {
-    this.writeQueue = this.writeQueue.then(async () => {
+    const operation = this.writeQueue.catch(() => {}).then(async () => {
       const data = await this.read();
       const result = await mutator(data);
       await this.write(data);
       return result;
     });
-    return this.writeQueue;
+    this.writeQueue = operation.catch(() => {});
+    return operation;
   }
 
   async write(data) {

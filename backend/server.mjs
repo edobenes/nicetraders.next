@@ -286,7 +286,9 @@ export function createServer({
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const port = Number(process.env.PORT || 8080);
-  const app = createServer();
+  const app = createServer({
+    dataFile: process.env.DATA_FILE || new URL("../data/dev-db.json", import.meta.url),
+  });
   app.listen(port, () => {
     console.log(`NICE Traders dev environment running at http://127.0.0.1:${port}`);
     console.log(`Auth API and legacy /q endpoint are using ${app.locals.store.filePath}`);

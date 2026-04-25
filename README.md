@@ -30,11 +30,29 @@ User records are stored in `data/dev-db.json`, which is intentionally gitignored
 npm test
 ```
 
-To run a browser-level registration/login check against a running dev server:
+`npm test` starts an isolated API instance with a temporary JSON database and verifies:
+
+- REST registration, login, session lookup, and logout.
+- Duplicate-email and invalid-login errors.
+- Legacy `/q?command=...` registration, login, and session lookup used by the exported frontend.
+
+To run a browser-level registration/login check against the exported frontend:
 
 ```sh
 npm run test:e2e
 ```
+
+By default, `npm run test:e2e` starts its own dev server on a free local port with a temporary JSON database, fills the current exported register/login pages in Chrome, verifies the `sessionId` cookie through `/q`, and writes screenshots to `/opt/cursor/artifacts`.
+
+Useful options:
+
+```sh
+HEADLESS=false npm run test:e2e
+E2E_BASE_URL=http://127.0.0.1:8080 npm run test:e2e
+E2E_ARTIFACT_DIR=./artifacts npm run test:e2e
+```
+
+Use `HEADLESS=false` for a visible local browser run. Set `E2E_BASE_URL` only when you intentionally want to test an already-running server.
 
 ## Backend design
 
