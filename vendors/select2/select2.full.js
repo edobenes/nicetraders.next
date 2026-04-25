@@ -1,5 +1,5 @@
 /*!
- * Select2 4.1.0-beta.0
+ * Select2 4.1.0-rc.0
  * https://select2.github.io
  *
  * Released under the MIT license
@@ -762,20 +762,25 @@ S2.define('select2/utils',[
   Utils.GetUniqueElementId = function (element) {
     // Get a unique element Id. If element has no id,
     // creates a new unique number, stores it in the id
-    // attribute and returns the new id.
-    // If an id already exists, it simply returns it.
+    // attribute and returns the new id with a prefix.
+    // If an id already exists, it simply returns it with a prefix.
 
     var select2Id = element.getAttribute('data-select2-id');
-    if (select2Id == null) {
-      // If element has id, use it.
-      if (element.id) {
-        select2Id = element.id;
-        element.setAttribute('data-select2-id', select2Id);
-      } else {
-        element.setAttribute('data-select2-id', ++id);
-        select2Id = id.toString();
-      }
+
+    if (select2Id != null) {
+      return select2Id;
     }
+
+    // If element has id, use it.
+    if (element.id) {
+      select2Id = 'select2-data-' + element.id;
+    } else {
+      select2Id = 'select2-data-' + (++id).toString() +
+        '-' + Utils.generateChars(4);
+    }
+
+    element.setAttribute('data-select2-id', select2Id);
+
     return select2Id;
   };
 
@@ -945,9 +950,9 @@ S2.define('select2/results',[
 
   Results.prototype.highlightFirstItem = function () {
     var $options = this.$results
-      .find('.select2-results__option[aria-selected]');
+      .find('.select2-results__option--selectable');
 
-    var $selected = $options.filter('[aria-selected=true]');
+    var $selected = $options.filter('.select2-results__option--selected');
 
     // Check if there are any selected options
     if ($selected.length > 0) {
@@ -971,7 +976,7 @@ S2.define('select2/results',[
       });
 
       var $options = self.$results
-        .find('.select2-results__option[aria-selected]');
+        .find('.select2-results__option--selectable');
 
       $options.each(function () {
         var $option = $(this);
@@ -983,8 +988,10 @@ S2.define('select2/results',[
 
         if ((item.element != null && item.element.selected) ||
             (item.element == null && selectedIds.indexOf(id) > -1)) {
+          this.classList.add('select2-results__option--selected');
           $option.attr('aria-selected', 'true');
         } else {
+          this.classList.remove('select2-results__option--selected');
           $option.attr('aria-selected', 'false');
         }
       });
@@ -1014,11 +1021,11 @@ S2.define('select2/results',[
 
   Results.prototype.option = function (data) {
     var option = document.createElement('li');
-    option.className = 'select2-results__option';
+    option.classList.add('select2-results__option');
+    option.classList.add('select2-results__option--selectable');
 
     var attrs = {
-      'role': 'option',
-      'aria-selected': 'false'
+      'role': 'option'
     };
 
     var matches = window.Element.prototype.matches ||
@@ -1027,12 +1034,14 @@ S2.define('select2/results',[
 
     if ((data.element != null && matches.call(data.element, ':disabled')) ||
         (data.element == null && data.disabled)) {
-      delete attrs['aria-selected'];
       attrs['aria-disabled'] = 'true';
+
+      option.classList.remove('select2-results__option--selectable');
+      option.classList.add('select2-results__option--disabled');
     }
 
     if (data.id == null) {
-      delete attrs['aria-selected'];
+      option.classList.remove('select2-results__option--selectable');
     }
 
     if (data._resultId != null) {
@@ -1046,7 +1055,9 @@ S2.define('select2/results',[
     if (data.children) {
       attrs.role = 'group';
       attrs['aria-label'] = data.text;
-      delete attrs['aria-selected'];
+
+      option.classList.remove('select2-results__option--selectable');
+      option.classList.add('select2-results__option--group');
     }
 
     for (var attr in attrs) {
@@ -1061,7 +1072,6 @@ S2.define('select2/results',[
       var label = document.createElement('strong');
       label.className = 'select2-results__group';
 
-      var $label = $(label);
       this.template(data, label);
 
       var $children = [];
@@ -1075,7 +1085,8 @@ S2.define('select2/results',[
       }
 
       var $childrenContainer = $('<ul></ul>', {
-        'class': 'select2-results__options select2-results__options--nested'
+        'class': 'select2-results__options select2-results__options--nested',
+        'role': 'none'
       });
 
       $childrenContainer.append($children);
@@ -1180,7 +1191,7 @@ S2.define('select2/results',[
 
       var data = Utils.GetData($highlighted[0], 'data');
 
-      if ($highlighted.attr('aria-selected') == 'true') {
+      if ($highlighted.hasClass('select2-results__option--selected')) {
         self.trigger('close', {});
       } else {
         self.trigger('select', {
@@ -1192,7 +1203,7 @@ S2.define('select2/results',[
     container.on('results:previous', function () {
       var $highlighted = self.getHighlightedResults();
 
-      var $options = self.$results.find('[aria-selected]');
+      var $options = self.$results.find('.select2-results__option--selectable');
 
       var currentIndex = $options.index($highlighted);
 
@@ -1227,7 +1238,7 @@ S2.define('select2/results',[
     container.on('results:next', function () {
       var $highlighted = self.getHighlightedResults();
 
-      var $options = self.$results.find('[aria-selected]');
+      var $options = self.$results.find('.select2-results__option--selectable');
 
       var currentIndex = $options.index($highlighted);
 
@@ -1256,6 +1267,7 @@ S2.define('select2/results',[
 
     container.on('results:focus', function (params) {
       params.element[0].classList.add('select2-results__option--highlighted');
+      params.element[0].setAttribute('aria-selected', 'true');
     });
 
     container.on('results:message', function (params) {
@@ -1287,13 +1299,13 @@ S2.define('select2/results',[
       });
     }
 
-    this.$results.on('mouseup', '.select2-results__option[aria-selected]',
+    this.$results.on('mouseup', '.select2-results__option--selectable',
       function (evt) {
       var $this = $(this);
 
       var data = Utils.GetData(this, 'data');
 
-      if ($this.attr('aria-selected') === 'true') {
+      if ($this.hasClass('select2-results__option--selected')) {
         if (self.options.get('multiple')) {
           self.trigger('unselect', {
             originalEvent: evt,
@@ -1312,12 +1324,13 @@ S2.define('select2/results',[
       });
     });
 
-    this.$results.on('mouseenter', '.select2-results__option[aria-selected]',
+    this.$results.on('mouseenter', '.select2-results__option--selectable',
       function (evt) {
       var data = Utils.GetData(this, 'data');
 
       self.getHighlightedResults()
-          .removeClass('select2-results__option--highlighted');
+          .removeClass('select2-results__option--highlighted')
+          .attr('aria-selected', 'false');
 
       self.trigger('results:focus', {
         data: data,
@@ -1344,7 +1357,7 @@ S2.define('select2/results',[
       return;
     }
 
-    var $options = this.$results.find('[aria-selected]');
+    var $options = this.$results.find('.select2-results__option--selectable');
 
     var currentIndex = $options.index($highlighted);
 
@@ -1624,6 +1637,7 @@ S2.define('select2/selection/single',[
       .attr('role', 'textbox')
       .attr('aria-readonly', 'true');
     this.$selection.attr('aria-labelledby', id);
+    this.$selection.attr('aria-controls', id);
 
     this.$selection.on('mousedown', function (evt) {
       // Only respond to left clicks
@@ -1721,6 +1735,9 @@ S2.define('select2/selection/multiple',[
 
     MultipleSelection.__super__.bind.apply(this, arguments);
 
+    var id = container.id + '-container';
+    this.$selection.find('.select2-selection__rendered').attr('id', id);
+
     this.$selection.on('click', function (evt) {
       self.trigger('toggle', {
         originalEvent: evt
@@ -1747,6 +1764,19 @@ S2.define('select2/selection/multiple',[
         });
       }
     );
+
+    this.$selection.on(
+      'keydown',
+      '.select2-selection__choice__remove',
+      function (evt) {
+        // Ignore the event if it is disabled
+        if (self.isDisabled()) {
+          return;
+        }
+
+        evt.stopPropagation();
+      }
+    );
   };
 
   MultipleSelection.prototype.clear = function () {
@@ -1765,9 +1795,11 @@ S2.define('select2/selection/multiple',[
   MultipleSelection.prototype.selectionContainer = function () {
     var $container = $(
       '<li class="select2-selection__choice">' +
-        '<span class="select2-selection__choice__remove" role="presentation">' +
-          '&times;' +
-        '</span>' +
+        '<button type="button" class="select2-selection__choice__remove" ' +
+        'tabindex="-1">' +
+          '<span aria-hidden="true">&times;</span>' +
+        '</button>' +
+        '<span class="select2-selection__choice__display"></span>' +
       '</li>'
     );
 
@@ -1783,19 +1815,40 @@ S2.define('select2/selection/multiple',[
 
     var $selections = [];
 
+    var selectionIdPrefix = this.$selection.find('.select2-selection__rendered')
+      .attr('id') + '-choice-';
+
     for (var d = 0; d < data.length; d++) {
       var selection = data[d];
 
       var $selection = this.selectionContainer();
       var formatted = this.display(selection, $selection);
 
-      $selection.append(formatted);
+      var selectionId = selectionIdPrefix + Utils.generateChars(4) + '-';
+
+      if (selection.id) {
+        selectionId += selection.id;
+      } else {
+        selectionId += Utils.generateChars(4);
+      }
+
+      $selection.find('.select2-selection__choice__display')
+        .append(formatted)
+        .attr('id', selectionId);
 
       var title = selection.title || selection.text;
 
       if (title) {
         $selection.attr('title', title);
       }
+
+      var removeItem = this.options.get('translations').get('removeItem');
+
+      var $remove = $selection.find('.select2-selection__choice__remove');
+
+      $remove.attr('title', removeItem());
+      $remove.attr('aria-label', removeItem());
+      $remove.attr('aria-describedby', selectionId);
 
       Utils.StoreData($selection[0], 'data', selection);
 
@@ -1836,6 +1889,15 @@ S2.define('select2/selection/placeholder',[
     $placeholder.html(this.display(placeholder));
     $placeholder[0].classList.add('select2-selection__placeholder');
     $placeholder[0].classList.remove('select2-selection__choice');
+
+    var placeholderTitle = placeholder.title ||
+      placeholder.text ||
+      $placeholder.text();
+
+    this.$selection.find('.select2-selection__rendered').attr(
+      'title',
+      placeholderTitle
+    );
 
     return $placeholder;
   };
@@ -1954,21 +2016,31 @@ S2.define('select2/selection/allowClear',[
   AllowClear.prototype.update = function (decorated, data) {
     decorated.call(this, data);
 
+    this.$selection.find('.select2-selection__clear').remove();
+    this.$selection[0].classList.remove('select2-selection--clearable');
+
     if (this.$selection.find('.select2-selection__placeholder').length > 0 ||
         data.length === 0) {
       return;
     }
 
+    var selectionId = this.$selection.find('.select2-selection__rendered')
+      .attr('id');
+
     var removeAll = this.options.get('translations').get('removeAllItems');
 
     var $remove = $(
-      '<span class="select2-selection__clear" title="' + removeAll() +'">' +
-        '&times;' +
-      '</span>'
+      '<button type="button" class="select2-selection__clear" tabindex="-1">' +
+        '<span aria-hidden="true">&times;</span>' +
+      '</button>'
     );
+    $remove.attr('title', removeAll());
+    $remove.attr('aria-label', removeAll());
+    $remove.attr('aria-describedby', selectionId);
     Utils.StoreData($remove[0], 'data', data);
 
-    this.$selection.find('.select2-selection__rendered').prepend($remove);
+    this.$selection.prepend($remove);
+    this.$selection[0].classList.add('select2-selection--clearable');
   };
 
   return AllowClear;
@@ -1984,20 +2056,27 @@ S2.define('select2/selection/search',[
   }
 
   Search.prototype.render = function (decorated) {
+    var searchLabel = this.options.get('translations').get('search');
     var $search = $(
-      '<li class="select2-search select2-search--inline">' +
-        '<input class="select2-search__field" type="search" tabindex="-1"' +
-        ' autocomplete="off" autocorrect="off" autocapitalize="none"' +
-        ' spellcheck="false" role="searchbox" aria-autocomplete="list" />' +
-      '</li>'
+      '<span class="select2-search select2-search--inline">' +
+        '<textarea class="select2-search__field"'+
+        ' type="search" tabindex="-1"' +
+        ' autocorrect="off" autocapitalize="none"' +
+        ' spellcheck="false" role="searchbox" aria-autocomplete="list" >' +
+        '</textarea>' +
+      '</span>'
     );
 
     this.$searchContainer = $search;
-    this.$search = $search.find('input');
+    this.$search = $search.find('textarea');
+
+    this.$search.prop('autocomplete', this.options.get('autocomplete'));
+    this.$search.attr('aria-label', searchLabel());
 
     var $rendered = decorated.call(this);
 
     this._transferTabIndex();
+    $rendered.append(this.$searchContainer);
 
     return $rendered;
   };
@@ -2006,8 +2085,11 @@ S2.define('select2/selection/search',[
     var self = this;
 
     var resultsId = container.id + '-results';
+    var selectionId = container.id + '-container';
 
     decorated.call(this, container, $container);
+
+    self.$search.attr('aria-describedby', selectionId);
 
     container.on('open', function () {
       self.$search.attr('aria-controls', resultsId);
@@ -2016,6 +2098,7 @@ S2.define('select2/selection/search',[
 
     container.on('close', function () {
       self.$search.val('');
+      self.resizeSearch();
       self.$search.removeAttr('aria-controls');
       self.$search.removeAttr('aria-activedescendant');
       self.$search.trigger('focus');
@@ -2061,8 +2144,8 @@ S2.define('select2/selection/search',[
       var key = evt.which;
 
       if (key === KEYS.BACKSPACE && self.$search.val() === '') {
-        var $previousChoice = self.$searchContainer
-          .prev('.select2-selection__choice');
+        var $previousChoice = self.$selection
+          .find('.select2-selection__choice').last();
 
         if ($previousChoice.length > 0) {
           var item = Utils.GetData($previousChoice[0], 'data');
@@ -2160,9 +2243,6 @@ S2.define('select2/selection/search',[
 
     decorated.call(this, data);
 
-    this.$selection.find('.select2-selection__rendered')
-                   .append(this.$searchContainer);
-
     this.resizeSearch();
     if (searchHadFocus) {
       this.$search.trigger('focus');
@@ -2195,11 +2275,9 @@ S2.define('select2/selection/search',[
   Search.prototype.resizeSearch = function () {
     this.$search.css('width', '25px');
 
-    var width = '';
+    var width = '100%';
 
-    if (this.$search.attr('placeholder') !== '') {
-      width = this.$selection.find('.select2-selection__rendered').width();
-    } else {
+    if (this.$search.attr('placeholder') === '') {
       var minimumWidth = this.$search.val().length + 1;
 
       width = (minimumWidth * 0.75) + 'em';
@@ -3636,7 +3714,7 @@ S2.define('select2/data/ajax',[
 
     if (this._request != null) {
       // JSONP requests cannot always be aborted
-      if ($.isFunction(this._request.abort)) {
+      if (typeof this._request.abort === 'function') {
         this._request.abort();
       }
 
@@ -3780,7 +3858,7 @@ S2.define('select2/data/tags',[
 
       if (tag != null) {
         var $option = self.option(tag);
-        $option.attr('data-select2-tag', true);
+        $option.attr('data-select2-tag', 'true');
 
         self.addOptions([$option]);
 
@@ -4116,17 +4194,21 @@ S2.define('select2/dropdown/search',[
 
   Search.prototype.render = function (decorated) {
     var $rendered = decorated.call(this);
+    var searchLabel = this.options.get('translations').get('search');
 
     var $search = $(
       '<span class="select2-search select2-search--dropdown">' +
         '<input class="select2-search__field" type="search" tabindex="-1"' +
-        ' autocomplete="off" autocorrect="off" autocapitalize="none"' +
+        ' autocorrect="off" autocapitalize="none"' +
         ' spellcheck="false" role="searchbox" aria-autocomplete="list" />' +
       '</span>'
     );
 
     this.$searchContainer = $search;
     this.$search = $search.find('input');
+
+    this.$search.prop('autocomplete', this.options.get('autocomplete'));
+    this.$search.attr('aria-label', searchLabel());
 
     $rendered.prepend($search);
 
@@ -4772,6 +4854,38 @@ S2.define('select2/dropdown/dropdownCss',[
   return DropdownCSS;
 });
 
+S2.define('select2/dropdown/tagsSearchHighlight',[
+  '../utils'
+], function (Utils) {
+  function TagsSearchHighlight () { }
+
+  TagsSearchHighlight.prototype.highlightFirstItem = function (decorated) {
+    var $options = this.$results
+    .find(
+      '.select2-results__option--selectable' +
+      ':not(.select2-results__option--selected)'
+    );
+
+    if ($options.length > 0) {
+      var $firstOption = $options.first();
+      var data = Utils.GetData($firstOption[0], 'data');
+      var firstElement = data.element;
+
+      if (firstElement && firstElement.getAttribute) {
+        if (firstElement.getAttribute('data-select2-tag') === 'true') {
+          $firstOption.trigger('mouseenter');
+
+          return;
+        }
+      }
+    }
+
+    decorated.call(this);
+  };
+
+  return TagsSearchHighlight;
+});
+
 S2.define('select2/i18n/en',[],function () {
   // English
   return {
@@ -4816,6 +4930,12 @@ S2.define('select2/i18n/en',[],function () {
     },
     removeAllItems: function () {
       return 'Remove all items';
+    },
+    removeItem: function () {
+      return 'Remove item';
+    },
+    search: function() {
+      return 'Search';
     }
   };
 });
@@ -4855,6 +4975,7 @@ S2.define('select2/defaults',[
   './dropdown/selectOnClose',
   './dropdown/closeOnSelect',
   './dropdown/dropdownCss',
+  './dropdown/tagsSearchHighlight',
 
   './i18n/en'
 ], function ($,
@@ -4871,7 +4992,7 @@ S2.define('select2/defaults',[
 
              Dropdown, DropdownSearch, HidePlaceholder, InfiniteScroll,
              AttachBody, MinimumResultsForSearch, SelectOnClose, CloseOnSelect,
-             DropdownCSS,
+             DropdownCSS, TagsSearchHighlight,
 
              EnglishTranslation) {
   function Defaults () {
@@ -4946,6 +5067,13 @@ S2.define('select2/defaults',[
           SelectOnClose
         );
       }
+
+      if (options.tags) {
+        options.resultsAdapter = Utils.Decorate(
+          options.resultsAdapter,
+          TagsSearchHighlight
+        );
+      }
     }
 
     if (options.dropdownAdapter == null) {
@@ -4971,11 +5099,7 @@ S2.define('select2/defaults',[
         );
       }
 
-      if (
-        options.dropdownCssClass != null ||
-        options.dropdownCss != null ||
-        options.adaptDropdownCssClass != null
-      ) {
+      if (options.dropdownCssClass != null) {
         options.dropdownAdapter = Utils.Decorate(
           options.dropdownAdapter,
           DropdownCSS
@@ -5017,11 +5141,7 @@ S2.define('select2/defaults',[
         );
       }
 
-      if (
-        options.containerCssClass != null ||
-        options.containerCss != null ||
-        options.adaptContainerCssClass != null
-      ) {
+      if (options.selectionCssClass != null) {
         options.selectionAdapter = Utils.Decorate(
           options.selectionAdapter,
           SelectionCSS
@@ -5118,6 +5238,7 @@ S2.define('select2/defaults',[
 
     this.defaults = {
       amdLanguageBase: './i18n/',
+      autocomplete: 'off',
       closeOnSelect: true,
       debug: false,
       dropdownAutoWidth: false,
@@ -5285,6 +5406,10 @@ S2.define('select2/options',[
 
     if (this.options.disabled == null) {
       this.options.disabled = $e.prop('disabled');
+    }
+
+    if (this.options.autocomplete == null && $e.prop('autocomplete')) {
+      this.options.autocomplete = $e.prop('autocomplete');
     }
 
     if (this.options.dir == null) {
@@ -5694,12 +5819,11 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.ESC || key === KEYS.TAB ||
-            (key === KEYS.UP && evt.altKey)) {
+        if (key === KEYS.ESC || (key === KEYS.UP && evt.altKey)) {
           self.close(evt);
 
           evt.preventDefault();
-        } else if (key === KEYS.ENTER) {
+        } else if (key === KEYS.ENTER || key === KEYS.TAB) {
           self.trigger('results:select', {});
 
           evt.preventDefault();
@@ -5946,6 +6070,7 @@ S2.define('select2/core',[
   };
 
   Select2.prototype.destroy = function () {
+    Utils.RemoveData(this.$container[0]);
     this.$container.remove();
 
     this._observer.disconnect();
