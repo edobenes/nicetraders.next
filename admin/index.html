@@ -50,8 +50,8 @@
 <script>
 	
 	if (window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1"){
-		var basePath=window.location.protocol + "//" + window.location.host +":3000/";
-		var socketPath="ws://" + window.location.host +":3000/q";
+		var basePath=window.location.protocol + "//" + window.location.hostname +":3000/";
+		var socketPath="ws://" + window.location.hostname +":3000/q";
 	} else if (window.location.hostname=="www.nicetraders.com" || window.location.hostname=="nicetraders.com"){
 		var socketPath="wss://" + window.location.host +"/q/";
 		var basePath=window.location.protocol + "//" + window.location.host +"/q/";
@@ -95,7 +95,7 @@
 
 		connection.onclose = function() {
 			console.error('disconnected');
-			setTimeout(connectToWebSockets,10000);
+			setTimeout(app.connectToWebSockets,10000);
 		};
 
 		connection.onerror = function(error) {
