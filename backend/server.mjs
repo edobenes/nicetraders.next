@@ -64,9 +64,9 @@ function authResponse(session, user) {
   };
 }
 
-function legacyResponse(method, data) {
+function legacyResponse(method, data, object = "users") {
   return {
-    object: "users",
+    object,
     method,
     data,
   };
@@ -167,30 +167,36 @@ export function createServer({
   }
 
   async function handleLegacyCommand(command) {
-    if (!command || command.object !== "users") {
+    if (!command || !["users", "admin"].includes(command.object)) {
       const error = new Error("Unsupported command");
       error.status = 400;
       error.code = "unsupportedCommand";
       throw error;
     }
 
-    if (command.method === "create") {
+    if (command.object === "users" && command.method === "create") {
       const { session, user } = await registerUser(command.data || {});
       return legacyResponse("createSuccess", authResponse(session, user));
     }
 
     if (command.method === "login") {
       const { session, user } = await loginUser(command.data || {});
-      return legacyResponse("loggedIn", authResponse(session, user));
+      return legacyResponse("loggedIn", authResponse(session, user), command.object);
     }
 
-    if (command.method === "verifyBySessionId") {
+    if (command.object === "users" && command.method === "verifyBySessionId") {
       const result = await getSession(command.data?.sessionId);
       if (!result) return legacyResponse("missingVariables", { id: "login" });
       return legacyResponse("sessionVerified", authResponse(result.session, result.user));
     }
 
-    const error = new Error(`Unsupported users method: ${command.method}`);
+    if (command.object === "admin" && command.method === "verifyAdminSession") {
+      const result = await getSession(command.data?.sessionId);
+      if (!result) return legacyResponse("missingVariables", { id: "login" }, "admin");
+      return legacyResponse("sessionVerified", authResponse(result.session, result.user), "admin");
+    }
+
+    const error = new Error(`Unsupported ${command.object} method: ${command.method}`);
     error.status = 400;
     error.code = "unsupportedCommand";
     throw error;

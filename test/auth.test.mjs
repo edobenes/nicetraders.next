@@ -166,3 +166,41 @@ test("supports the exported frontend legacy /q auth contract", async () => {
   assert.equal(verified.method, "sessionVerified");
   assert.equal(verified.data.user.email, email);
 });
+
+test("supports legacy admin login and session verification commands", async () => {
+  const email = `admin-${Date.now()}@example.com`;
+  const password = "TestPass123!";
+  const createCommand = {
+    object: "users",
+    method: "create",
+    data: { firstName: "Admin", lastName: "Tester", email, password },
+  };
+
+  const create = await fetch(`${baseUrl}/q?command=${encodeURIComponent(JSON.stringify(createCommand))}`);
+  assert.equal(create.status, 200);
+  assert.ok((await create.json()).data.sessionId);
+
+  const loginCommand = {
+    object: "admin",
+    method: "login",
+    data: { email, password },
+  };
+  const login = await fetch(`${baseUrl}/q?command=${encodeURIComponent(JSON.stringify(loginCommand))}`);
+  assert.equal(login.status, 200);
+  const loggedIn = await login.json();
+  assert.equal(loggedIn.object, "admin");
+  assert.equal(loggedIn.method, "loggedIn");
+  assert.ok(loggedIn.data.sessionId);
+
+  const verifyCommand = {
+    object: "admin",
+    method: "verifyAdminSession",
+    data: { sessionId: loggedIn.data.sessionId },
+  };
+  const verify = await fetch(`${baseUrl}/q?command=${encodeURIComponent(JSON.stringify(verifyCommand))}`);
+  assert.equal(verify.status, 200);
+  const verified = await verify.json();
+  assert.equal(verified.object, "admin");
+  assert.equal(verified.method, "sessionVerified");
+  assert.equal(verified.data.user.email, email);
+});
