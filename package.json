@@ -13,7 +13,8 @@
     "test": "node --test test/*.test.mjs",
     "test:e2e": "node test/e2e-auth.mjs",
     "mcp": "node mcp/server.mjs",
-    "mcp:http": "node mcp/server.mjs --http"
+    "mcp:http": "node mcp/server.mjs --http",
+    "test:mcp": "node --test test/mcp.test.mjs"
   },
   "repository": {
     "type": "git",
