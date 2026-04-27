@@ -312,7 +312,6 @@ export function createMcpServer(store) {
 async function main() {
   const args = process.argv.slice(2);
   const useHttp = args.includes("--http");
-  const useStdio = !useHttp || args.includes("--stdio");
 
   const dataFile = process.env.DATA_FILE
     ? process.env.DATA_FILE
