@@ -11,7 +11,10 @@
     "dev": "node backend/server.mjs",
     "start": "node backend/server.mjs",
     "test": "node --test test/*.test.mjs",
-    "test:e2e": "node test/e2e-auth.mjs"
+    "test:e2e": "node test/e2e-auth.mjs",
+    "mcp": "node mcp/server.mjs",
+    "mcp:http": "node mcp/server.mjs --http",
+    "test:mcp": "node --test test/mcp.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -25,8 +28,10 @@
   },
   "homepage": "https://github.com/edobenes/nicetraders.next#readme",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "puppeteer-core": "^24.42.0"
