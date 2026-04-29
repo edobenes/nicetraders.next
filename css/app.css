@@ -1354,9 +1354,9 @@ select.form-input {
   #app-main { margin-bottom: 0; }
   #bottom-nav { display: none; }
 
-  /* Side navigation for desktop */
-  #side-nav {
-    display: flex !important;
+  /* Side navigation for desktop — only when body has .logged-in */
+  body.logged-in #side-nav {
+    display: flex;
     position: fixed;
     left: 0; top: calc(var(--header-h) + var(--safe-top));
     bottom: 0;
@@ -1369,13 +1369,13 @@ select.form-input {
     overflow-y: auto;
     z-index: 50;
   }
-  #app-main { margin-left: 240px; }
+  body.logged-in #app-main { margin-left: 240px; }
   .page-container { padding: 24px; }
 }
 
 @media (min-width: 1024px) {
-  #side-nav { width: 260px; }
-  #app-main { margin-left: 260px; }
+  body.logged-in #side-nav { width: 260px; }
+  body.logged-in #app-main { margin-left: 260px; }
   .page-container { max-width: 720px; padding: 28px; }
   .page-container-wide { padding: 28px; }
 }

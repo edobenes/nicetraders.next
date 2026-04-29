@@ -1629,24 +1629,18 @@ const App = {
   updateNavState() {
     const isLoggedIn = !!Store.get('sessionId');
     const user = Store.get('user');
-    const authNav = document.getElementById('header-auth-nav');
-    const appNav  = document.getElementById('header-app-nav');
+    const authNav   = document.getElementById('header-auth-nav');
+    const appNav    = document.getElementById('header-app-nav');
     const bottomNav = document.getElementById('bottom-nav');
-    const sideNav   = document.getElementById('side-nav');
     const header    = document.getElementById('app-header');
 
-    if (authNav)  authNav.style.display  = isLoggedIn ? 'none'  : 'flex';
-    if (appNav)   appNav.style.display   = isLoggedIn ? 'flex'  : 'none';
+    // body.logged-in drives CSS visibility for side-nav and main margin
+    document.body.classList.toggle('logged-in', isLoggedIn);
+
+    if (authNav)   authNav.style.display   = isLoggedIn ? 'none' : 'flex';
+    if (appNav)    appNav.style.display    = isLoggedIn ? 'flex' : 'none';
     if (bottomNav) bottomNav.style.display = isLoggedIn ? 'flex' : 'none';
     if (header)    header.style.display    = isLoggedIn ? 'flex' : 'none';
-    // Side nav: visibility is controlled via CSS media query for md+, but only when logged in
-    if (sideNav) {
-      if (isLoggedIn) {
-        sideNav.removeAttribute('style');  // let CSS media query control
-      } else {
-        sideNav.style.display = 'none';
-      }
-    }
 
     // Update avatar initials
     const avatarEls = document.querySelectorAll('.user-avatar-text');
@@ -1661,15 +1655,6 @@ const App = {
     const isAuth = ['home', 'login', 'register', 'forgot'].includes(screen);
     main.classList.toggle('no-nav-offset', isAuth);
     this.updateNavState();
-    // Auth screens override header visibility regardless of login state
-    if (isAuth) {
-      const headerEl = document.getElementById('app-header');
-      if (headerEl) headerEl.style.display = 'none';
-      const bottomNavEl = document.getElementById('bottom-nav');
-      if (bottomNavEl) bottomNavEl.style.display = 'none';
-      const sideNavEl = document.getElementById('side-nav');
-      if (sideNavEl) sideNavEl.style.display = 'none';
-    }
 
     // Mark bottom / side nav items active
     document.querySelectorAll('.bnav-item[data-screen], .side-nav-item[data-screen]').forEach(el => {
